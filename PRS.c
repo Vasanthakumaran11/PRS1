@@ -2,14 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>  // for fabs()
 
 #define MAX_PRODUCTS 100
 #define MAX_REVIEWS 50
 #define MAX_STR_LEN 100
 #define HASH_SIZE 50
 #define MAX_HISTORY 50
+#define MAX_CUSTOMERS 100
 
 typedef struct {
+    char customerID[MAX_STR_LEN];
     char review[MAX_STR_LEN];
     float rating;
 } ReviewEntry;
@@ -23,9 +26,17 @@ typedef struct Product {
     struct Product *next;
 } Product;
 
+typedef struct {
+    char customerID[MAX_STR_LEN];
+    char name[MAX_STR_LEN];
+} Customer;
+
 Product *hashTable[HASH_SIZE] = {NULL};
 Product *products[MAX_PRODUCTS];
 int productCount = 0;
+
+Customer customers[MAX_CUSTOMERS];
+int customerCount = 0;
 
 char searchHistory[MAX_HISTORY][20];
 int searchCount = 0;
@@ -65,20 +76,67 @@ void insertProduct(Product *p) {
     hashTable[idx] = p;
 }
 
+// Check if customer exists
+Customer* findCustomer(const char *customerID) {
+    for (int i = 0; i < customerCount; i++) {
+        if (strcasecmp(customers[i].customerID, customerID) == 0) {
+            return &customers[i];
+        }
+    }
+    return NULL;
+}
+
+// Add new customer
+void addCustomer() {
+    if (customerCount >= MAX_CUSTOMERS) {
+        printf("Customer limit reached!\n");
+        return;
+    }
+
+    char id[MAX_STR_LEN], name[MAX_STR_LEN];
+    printf("New Customer ID: ");
+    scanf("%s", id);
+    normalizeID(id);
+
+    if (findCustomer(id)) {
+        printf("Customer ID already exists!\n");
+        return;
+    }
+
+    printf("Enter Customer Name: ");
+    scanf(" %[^\n]", name);
+
+    strcpy(customers[customerCount].customerID, id);
+    strcpy(customers[customerCount].name, name);
+    customerCount++;
+
+    printf("Customer added successfully!\n");
+}
+
 // Add or update product review
-void addProductReview(char *productID, char *name, float rating, char *review) {
+void addProductReview(char *productID, char *name, char *customerID, float rating, char *review) {
     if (rating < 1.0 || rating > 5.0) {
         printf("Invalid rating! Must be between 1.0 and 5.0.\n");
         return;
     }
 
     normalizeID(productID);
+    normalizeID(customerID);
+
+    Customer *c = findCustomer(customerID);
+    if (!c) {
+        printf("Customer ID not found! Please add the customer first.\n");
+        return;
+    }
+
     Product *p = findProduct(productID);
 
     if (p) { // Existing product
         for (int i = 0; i < p->reviewCount; i++) {
-            if (strcmp(p->reviews[i].review, review) == 0) {
-                printf("Duplicate review detected. Not added.\n");
+            if (strcmp(p->reviews[i].customerID, customerID) == 0 &&
+                fabs(p->reviews[i].rating - rating) < 1e-6 &&
+                strcmp(p->reviews[i].review, review) == 0) {
+                printf("Review already exists! Same rating and review text.\n");
                 return;
             }
         }
@@ -88,6 +146,7 @@ void addProductReview(char *productID, char *name, float rating, char *review) {
             return;
         }
 
+        strcpy(p->reviews[p->reviewCount].customerID, customerID);
         strcpy(p->reviews[p->reviewCount].review, review);
         p->reviews[p->reviewCount].rating = rating;
         p->reviewCount++;
@@ -98,7 +157,7 @@ void addProductReview(char *productID, char *name, float rating, char *review) {
             sum += p->reviews[i].rating;
         p->avgRating = sum / p->reviewCount;
 
-        printf("Review added to existing product.\n");
+        printf("Review added by customer %s to existing product.\n", customerID);
     } else { // New product
         if (productCount >= MAX_PRODUCTS) {
             printf("Product limit reached.\n");
@@ -109,6 +168,7 @@ void addProductReview(char *productID, char *name, float rating, char *review) {
         strcpy(newP->productID, productID);
         strcpy(newP->name, name);
         newP->reviewCount = 1;
+        strcpy(newP->reviews[0].customerID, customerID);
         strcpy(newP->reviews[0].review, review);
         newP->reviews[0].rating = rating;
         newP->avgRating = rating;
@@ -117,7 +177,7 @@ void addProductReview(char *productID, char *name, float rating, char *review) {
         products[productCount++] = newP;
         insertProduct(newP);
 
-        printf("New product added.\n");
+        printf("first review by customer %s.\n", customerID);
     }
 }
 
@@ -133,7 +193,10 @@ void searchProduct() {
         printf("\nProduct Found:\n");
         printf("ID: %s | Name: %s | Avg Rating: %.2f\n", p->productID, p->name, p->avgRating);
         for (int i = 0; i < p->reviewCount; i++) {
-            printf(" %.2f★ - %s\n", p->reviews[i].rating, p->reviews[i].review);
+            printf(" Customer: %s | %.2f★ - %s\n",
+                   p->reviews[i].customerID,
+                   p->reviews[i].rating,
+                   p->reviews[i].review);
         }
 
         if (searchCount < MAX_HISTORY) {
@@ -147,11 +210,11 @@ void searchProduct() {
 // Display top N rated products
 void displayTopRated() {
     int n;
-    printf("Enter N: ");
+    printf("Enter Product ID: ");
     scanf("%d", &n);
 
     if (n <= 0 || n > productCount) {
-        printf("Invalid N!\n");
+        printf("Invalid Product ID!\n");
         return;
     }
 
@@ -175,44 +238,75 @@ void displayTopRated() {
 
 int main() {
     int choice;
-    char pid[MAX_STR_LEN], name[MAX_STR_LEN], review[MAX_STR_LEN];
+    char pid[MAX_STR_LEN], name[MAX_STR_LEN], review[MAX_STR_LEN], customerID[MAX_STR_LEN];
     float rating;
 
     while (1) {
-        printf("\n--- Product Rating & Review System ---\n");
-        printf("1. Add Rating & Review\n2. Search Product\n3. Display Top Rated\n4. Exit\nChoice: ");
-        if (scanf("%d", &choice) != 1) break;
+        printf("\n--- Login Required ---\n");
+        printf("Enter Customer ID (or type NEW to register): ");
+        scanf("%s", customerID);
+        normalizeID(customerID);
 
-        switch (choice) {
-            case 1:
-                printf("Enter Product ID: ");
-                scanf("%s", pid);
-                printf("Enter Product Name: ");
-                scanf(" %[^\n]", name);
-                printf("Enter Rating (1.0-5.0): ");
-                scanf("%f", &rating);
-                printf("Enter Review: ");
-                scanf(" %[^\n]", review);
-                addProductReview(pid, name, rating, review);
-                break;
-
-            case 2:
-                searchProduct();
-                break;
-
-            case 3:
-                displayTopRated();
-                break;
-
-            case 4:
-                printf("Exiting...\n");
-                // Free allocated memory
-                for (int i = 0; i < productCount; i++) free(products[i]);
-                return 0;
-
-            default:
-                printf("Invalid choice.\n");
+        if (strcmp(customerID, "NEW") == 0) {
+            addCustomer();
+            continue; // restart login
         }
+
+        Customer *loggedIn = findCustomer(customerID);
+        if (!loggedIn) {
+            printf("Customer not found! Please add as new customer.\n");
+            continue;
+        }
+
+        printf("\nWelcome, %s (ID: %s)\n", loggedIn->name, loggedIn->customerID);
+
+        // Menu for logged-in customer
+        while (1) {
+            printf("\n--- Product Rating & Review System ---\n");
+            printf("1. Add Rating & Review\n2. Search Product\n3. Display Top Rated\n4. Logout\nChoice: ");
+            if (scanf("%d", &choice) != 1) break;
+
+            switch (choice) {
+                case 1: {
+                    char choiceYN;
+                    printf("Do you want to add a review? (Y/N): ");
+                    scanf(" %c", &choiceYN);
+                    if (choiceYN == 'N' || choiceYN == 'n') {
+                        printf("Skipping review...\n");
+                        break;
+                    }
+
+                    printf("Enter Product ID: ");
+                    scanf("%s", pid);
+                    printf("Enter Product Name: ");
+                    scanf(" %[^\n]", name);
+                    printf("Enter Rating (1.0-5.0): ");
+                    scanf("%f", &rating);
+                    printf("Enter Review: ");
+                    scanf(" %[^\n]", review);
+                    addProductReview(pid, name, loggedIn->customerID, rating, review);
+                    break;
+                }
+                case 2:
+                    searchProduct();
+                    break;
+
+                case 3:
+                    displayTopRated();
+                    break;
+
+                case 4:
+                    printf("Logging out...\n");
+                    goto logout; // break inner loop and go back to login
+
+                default:
+                    printf("Invalid choice.\n");
+            }
+        }
+        logout:;
     }
+
+    // Free allocated memory (on exit)
+    for (int i = 0; i < productCount; i++) free(products[i]); 
     return 0;
 }

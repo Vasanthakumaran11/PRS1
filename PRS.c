@@ -11,6 +11,9 @@
 #define MAX_HISTORY 50
 #define MAX_CUSTOMERS 100
 
+#define CUSTOMER_FILE "customers.txt"
+#define CUSTOMER_DATA_DIR "customer_data/"
+
 typedef struct {
     char customerID[MAX_STR_LEN];
     char review[MAX_STR_LEN];
@@ -38,9 +41,11 @@ int productCount = 0;
 Customer customers[MAX_CUSTOMERS];
 int customerCount = 0;
 
-char searchHistory[MAX_HISTORY][20];
+char searchHistory[MAX_HISTORY][MAX_STR_LEN];
 int searchCount = 0;
 
+
+// ------------------------ Utility Functions ------------------------
 
 unsigned int hashFunc(const char *key) {
     unsigned int hash = 0;
@@ -51,7 +56,6 @@ unsigned int hashFunc(const char *key) {
     return hash;
 }
 
-
 void normalizeID(char *id) {
     for (int i = 0; id[i]; i++) {
         id[i] = toupper((unsigned char)id[i]);
@@ -59,16 +63,88 @@ void normalizeID(char *id) {
 }
 
 
+// ------------------------ Customer Persistence ------------------------
+
+// Load all customers from file
+void loadCustomers() {
+    FILE *fp = fopen(CUSTOMER_FILE, "r");
+    if (!fp) return; // File may not exist yet
+
+    customerCount = 0;
+    while (!feof(fp) && customerCount < MAX_CUSTOMERS) {
+        char line[MAX_STR_LEN*2];
+        if (fgets(line, sizeof(line), fp)) {
+            line[strcspn(line, "\n")] = 0; // remove newline
+            char *token = strtok(line, "|");
+            if (token) strcpy(customers[customerCount].customerID, token);
+            token = strtok(NULL, "|");
+            if (token) strcpy(customers[customerCount].name, token);
+            customerCount++;
+        }
+    }
+    fclose(fp);
+}
+
+// Save a new customer to file
+void saveCustomerToFile(Customer c) {
+    FILE *fp = fopen(CUSTOMER_FILE, "a");
+    if (!fp) return;
+    fprintf(fp, "%s|%s\n", c.customerID, c.name);
+    fclose(fp);
+}
+
+// Save a customer's review to their personal file
+void saveCustomerProgress(char *customerID, char *productID, char *productName, float rating, char *review) {
+    char filename[150];
+    sprintf(filename, "%s%s.txt", CUSTOMER_DATA_DIR, customerID);
+
+    FILE *fp = fopen(filename, "a"); // append mode
+    if (!fp) {
+        printf("Error opening progress file for customer %s!\n", customerID);
+        return;
+    }
+
+    fprintf(fp, "%s|%s|%.2f|%s\n", productID, productName, rating, review);
+    fclose(fp);
+}
+
+// Load and display customer's previous reviews
+void loadCustomerProgress(char *customerID) {
+    char filename[150];
+    sprintf(filename, "%s%s.txt", CUSTOMER_DATA_DIR, customerID);
+
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return; // No previous progress
+
+    printf("\n--- Previous Reviews by %s ---\n", customerID);
+    char line[300];
+    while (fgets(line, sizeof(line), fp)) {
+        line[strcspn(line, "\n")] = 0; // remove newline
+        char *productID = strtok(line, "|");
+        char *productName = strtok(NULL, "|");
+        char *ratingStr = strtok(NULL, "|");
+        char *review = strtok(NULL, "|");
+
+        if (productID && productName && ratingStr && review) {
+            printf("Product: %s (%s) | Rating: %s | Review: %s\n",
+                   productName, productID, ratingStr, review);
+        }
+    }
+    fclose(fp);
+}
+
+
+// ------------------------ Product Functions ------------------------
+
 Product* findProduct(const char *productID) {
     unsigned int idx = hashFunc(productID);
     Product *p = hashTable[idx];
     while (p) {
-        if (strcasecmp(p->productID, productID) == 0) return p;
+        if (strcmp(p->productID, productID) == 0) return p;
         p = p->next;
     }
     return NULL;
 }
-
 
 void insertProduct(Product *p) {
     unsigned int idx = hashFunc(p->productID);
@@ -76,6 +152,8 @@ void insertProduct(Product *p) {
     hashTable[idx] = p;
 }
 
+
+// ------------------------ Customer Functions ------------------------
 
 Customer* findCustomer(char *customerID) {
     for (int i = 0; i < customerCount; i++) {
@@ -85,7 +163,6 @@ Customer* findCustomer(char *customerID) {
     }
     return NULL;
 }
-
 
 void addCustomer() {
     if (customerCount >= MAX_CUSTOMERS) {
@@ -108,11 +185,14 @@ void addCustomer() {
 
     strcpy(customers[customerCount].customerID, id);
     strcpy(customers[customerCount].name, name);
+    saveCustomerToFile(customers[customerCount]);
     customerCount++;
 
     printf("Customer added successfully!\n");
 }
 
+
+// ------------------------ Review Functions ------------------------
 
 void addProductReview(char *productID, char *name, char *customerID, float rating, char *review) {
     if (rating < 1.0 || rating > 5.0) {
@@ -154,7 +234,6 @@ void addProductReview(char *productID, char *name, char *customerID, float ratin
         p->reviews[p->reviewCount].rating = rating;
         p->reviewCount++;
 
-        
         float sum = 0.0;
         for (int i = 0; i < p->reviewCount; i++)
             sum += p->reviews[i].rating;
@@ -181,8 +260,15 @@ void addProductReview(char *productID, char *name, char *customerID, float ratin
         insertProduct(newP);
 
         printf("First review by customer %s.\n", customerID);
+        p = newP; // point p to new product for saving progress
     }
+
+    // Save progress to customer_data/<CustomerID>.txt
+    saveCustomerProgress(customerID, p->productID, p->name, rating, review);
 }
+
+
+// ------------------------ Product Search & Display ------------------------
 
 void searchProduct() {
     char id[20];
@@ -208,7 +294,6 @@ void searchProduct() {
         printf("Product not found!\n");
     }
 }
-
 
 void displayTopRated() {
     int n;
@@ -242,10 +327,14 @@ void displayTopRated() {
 }
 
 
+// ------------------------ Main ------------------------
+
 int main() {
     int choice;
     char pid[MAX_STR_LEN], name[MAX_STR_LEN], review[MAX_STR_LEN], customerID[MAX_STR_LEN];
     float rating;
+
+    loadCustomers(); 
 
     while (1) {
         printf("\n--- Login Required ---\n");
@@ -254,7 +343,7 @@ int main() {
         normalizeID(customerID);
 
         if (strcmp(customerID, "NEW") == 0) {
-            addCustomer();
+            addCustomer();  
             continue; 
         }
 
@@ -266,7 +355,9 @@ int main() {
 
         printf("\nWelcome, %s (ID: %s)\n", loggedIn->name, loggedIn->customerID);
 
-       
+        // Load previous progress
+        loadCustomerProgress(loggedIn->customerID);
+
         while (1) {
             printf("\n--- Product Rating & Review System ---\n");
             printf("1. Add Rating & Review\n2. Search Product\n3. Display Top Rated\n4. Logout\nChoice: ");
@@ -281,12 +372,10 @@ int main() {
                     Product *existingProduct = findProduct(pid);
 
                     if (existingProduct) {
-                        
                         printf("Product found: %s\n", existingProduct->name);
                         strcpy(name, existingProduct->name); 
                     } else {
-                        
-                         printf("Enter Product Name: ");
+                        printf("Enter Product Name: ");
                         scanf(" %[^\n]", name);
                     }
 
@@ -298,7 +387,7 @@ int main() {
                     scanf(" %c", &choiceYN);
 
                     if (choiceYN == 'N' || choiceYN == 'n') {
-                            strcpy(review, "No review provided.");
+                        strcpy(review, "No review provided.");
                     } else {
                         printf("Enter Review: ");
                         scanf(" %[^\n]", review);
@@ -306,7 +395,7 @@ int main() {
 
                     addProductReview(pid, name, loggedIn->customerID, rating, review);
                     break;
-                    }
+                }
 
                 case 2:
                     searchProduct();
@@ -326,6 +415,7 @@ int main() {
         }
         logout:;
     }
+
     for (int i = 0; i < productCount; i++) free(products[i]);
     return 0;
 }

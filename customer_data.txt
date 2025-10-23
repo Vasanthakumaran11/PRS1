@@ -1,0 +1,42 @@
+#define CUSTOMER_DATA_DIR "customer_data/"
+
+// Save a customer’s review to their personal file
+void saveCustomerProgress(char *customerID, char *productID, char *productName, float rating, char *review) {
+    char filename[150];
+    sprintf(filename, "%s%s.txt", CUSTOMER_DATA_DIR, customerID);
+
+    FILE *fp = fopen(filename, "a");  // append mode
+    if (!fp) {
+        printf("Error opening progress file for customer %s!\n", customerID);
+        return;
+    }
+
+    fprintf(fp, "%s|%s|%.2f|%s\n", productID, productName, rating, review);
+    fclose(fp);
+}
+
+// Load and display customer’s past progress
+void loadCustomerProgress(char *customerID) {
+    char filename[150];
+    sprintf(filename, "%s%s.txt", CUSTOMER_DATA_DIR, customerID);
+
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return;  // No previous progress
+
+    printf("\n--- Previous Reviews by %s ---\n", customerID);
+    char line[300];
+    while (fgets(line, sizeof(line), fp)) {
+        line[strcspn(line, "\n")] = 0;  // remove newline
+        char *productID = strtok(line, "|");
+        char *productName = strtok(NULL, "|");
+        char *ratingStr = strtok(NULL, "|");
+        char *review = strtok(NULL, "|");
+
+        if (productID && productName && ratingStr && review) {
+            printf("Product: %s (%s) | Rating: %s | Review: %s\n",
+                   productName, productID, ratingStr, review);
+        }
+    }
+
+    fclose(fp);
+}

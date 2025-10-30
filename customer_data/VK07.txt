@@ -1,0 +1,3 @@
+5432|laptop|4.00|good
+1234|pc|3.00|No review provided.
+9876|smart tv|4.50|excellent product

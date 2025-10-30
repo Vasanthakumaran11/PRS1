@@ -1,31 +1,6 @@
-#define CUSTOMER_FILE "customers.txt"
-
-// Load all customers from file
-void loadCustomers() {
-    FILE *fp = fopen(CUSTOMER_FILE, "r");
-    if (!fp) return; // File may not exist yet
-
-    customerCount = 0;
-    while (!feof(fp) && customerCount < MAX_CUSTOMERS) {
-        char line[MAX_STR_LEN*2];
-        if (fgets(line, sizeof(line), fp)) {
-            line[strcspn(line, "\n")] = 0; // remove newline
-            char *token = strtok(line, "|");
-            if (token) strcpy(customers[customerCount].customerID, token);
-            token = strtok(NULL, "|");
-            if (token) strcpy(customers[customerCount].name, token);
-            customerCount++;
-        }
-    }
-    fclose(fp);
-}
-
-// Save a new customer to file
-void saveCustomerToFile(Customer c) {
-    FILE *fp = fopen(CUSTOMER_FILE, "a");
-    if (!fp) return;
-    fprintf(fp, "%s|%s\n", c.customerID, c.name);
-    fclose(fp);
-}
-KAVIN11|kavin
-VASANTH7|vasanth
+VK07|vasanthakumar
+SU18|surya
+RAJU11|Raja
+KEVIN11|kevin
+SUJI123|suji
+RATHI55|rathiwarman

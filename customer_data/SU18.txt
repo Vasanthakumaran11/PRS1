@@ -1,1 +1,0 @@
-5432|laptop|3.00|moderate

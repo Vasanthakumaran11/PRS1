@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <errno.h>
+#include <time.h>
 #ifdef _WIN32
 #include <direct.h>
 #else
@@ -24,6 +25,7 @@ typedef struct {
     char customerID[MAX_STR_LEN];
     char review[MAX_STR_LEN];
     float rating;
+    char timestamp[MAX_STR_LEN]; // Added timestamp field
 } ReviewEntry;
 
 typedef struct Product {
@@ -49,6 +51,13 @@ static int customerCount = 0;
 
 static char searchHistory[MAX_HISTORY][MAX_STR_LEN];
 static int searchCount = 0;
+
+// Function to get current timestamp
+static void getCurrentTime(char *buffer, size_t len) {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(buffer, len, "%Y-%m-%d %H:%M:%S", t);
+}
 
 static unsigned int hashFunc(const char *key) {
     unsigned int hash = 0;
@@ -105,13 +114,14 @@ static void ensureCustomerDataDir(void) {
 #endif
 }
 
-static void saveCustomerProgress(const char *customerID, const char *productID, const char *productName, float rating, const char *review) {
+static void saveCustomerProgress(const char *customerID, const char *productID, const char *productName, float rating, const char *review, const char *timestamp) {
     ensureCustomerDataDir();
     char filename[256];
     snprintf(filename, sizeof filename, "%s%s.txt", CUSTOMER_DATA_DIR, customerID);
     FILE *fp = fopen(filename, "a");
     if (!fp) return;
-    fprintf(fp, "%s|%s|%.2f|%s\n", productID, productName, rating, review);
+    // Save timestamp with each review
+    fprintf(fp, "%s|%s|%.2f|%s|%s\n", productID, productName, rating, review, timestamp);
     fclose(fp);
 }
 
@@ -127,8 +137,9 @@ static void loadCustomerProgress(const char *customerID) {
         char *pname = strtok(NULL, "|");
         char *rstr = strtok(NULL, "|");
         char *rev = strtok(NULL, "|");
-        if (pid && pname && rstr && rev)
-            printf("Product: %s (%s) | Rating: %s | Review: %s\n", pname, pid, rstr, rev);
+        char *timeStr = strtok(NULL, "|");
+        if (pid && pname && rstr && rev && timeStr)
+            printf("Product: %s (%s) | Rating: %s | Review: %s | Time: %s\n", pname, pid, rstr, rev, timeStr);
     }
     fclose(fp);
 }
@@ -175,9 +186,7 @@ static void addCustomer(void) {
     printf("Enter Customer Name: ");
     readLine(name, sizeof name);
     strncpy(customers[customerCount].customerID, id, MAX_STR_LEN - 1);
-    customers[customerCount].customerID[MAX_STR_LEN - 1] = '\0';
     strncpy(customers[customerCount].name, name, MAX_STR_LEN - 1);
-    customers[customerCount].name[MAX_STR_LEN - 1] = '\0';
     saveCustomerToFile(customers[customerCount]);
     customerCount++;
     printf("Customer added successfully!\n");
@@ -188,56 +197,53 @@ static void addProductReviewInternal(const char *productID_in, const char *name_
         printf("Invalid rating! Must be between 1.0 and 5.0.\n");
         return;
     }
-    char productID[MAX_STR_LEN];
-    char customerID[MAX_STR_LEN];
-    char name[MAX_STR_LEN];
+
+    char productID[MAX_STR_LEN], customerID[MAX_STR_LEN], name[MAX_STR_LEN];
     strncpy(productID, productID_in, MAX_STR_LEN - 1);
-    productID[MAX_STR_LEN - 1] = '\0';
     strncpy(customerID, customerID_in, MAX_STR_LEN - 1);
-    customerID[MAX_STR_LEN - 1] = '\0';
     strncpy(name, name_in, MAX_STR_LEN - 1);
-    name[MAX_STR_LEN - 1] = '\0';
     normalizeID(productID);
     normalizeID(customerID);
+
     Customer *c = findCustomer(customerID);
     if (!c) return;
+
     Product *p = findProduct(productID);
+    char timestamp[MAX_STR_LEN];
+    getCurrentTime(timestamp, sizeof(timestamp));
+
     if (p) {
         for (int i = 0; i < p->reviewCount; i++)
             if (strcmp(p->reviews[i].customerID, customerID) == 0)
                 return;
         if (p->reviewCount >= MAX_REVIEWS) return;
-        strncpy(p->reviews[p->reviewCount].customerID, customerID, MAX_STR_LEN - 1);
-        strncpy(p->reviews[p->reviewCount].review, review, MAX_STR_LEN - 1);
-        p->reviews[p->reviewCount].rating = rating;
-        p->reviewCount++;
-        float sum = 0.0f;
+        ReviewEntry *r = &p->reviews[p->reviewCount++];
+        strcpy(r->customerID, customerID);
+        strcpy(r->review, review);
+        r->rating = rating;
+        strcpy(r->timestamp, timestamp);
+        float sum = 0;
         for (int i = 0; i < p->reviewCount; i++) sum += p->reviews[i].rating;
         p->avgRating = sum / p->reviewCount;
     } else {
         if (productCount >= MAX_PRODUCTS) return;
         Product *newP = malloc(sizeof(Product));
-        if (!newP) return;
-        strncpy(newP->productID, productID, MAX_STR_LEN - 1);
-        newP->productID[MAX_STR_LEN - 1] = '\0';
-        strncpy(newP->name, name, MAX_STR_LEN - 1);
-        newP->name[MAX_STR_LEN - 1] = '\0';
+        strcpy(newP->productID, productID);
+        strcpy(newP->name, name);
         newP->reviewCount = 1;
-        strncpy(newP->reviews[0].customerID, customerID, MAX_STR_LEN - 1);
-        strncpy(newP->reviews[0].review, review, MAX_STR_LEN - 1);
+        strcpy(newP->reviews[0].customerID, customerID);
+        strcpy(newP->reviews[0].review, review);
         newP->reviews[0].rating = rating;
+        strcpy(newP->reviews[0].timestamp, timestamp);
         newP->avgRating = rating;
         newP->next = NULL;
         products[productCount++] = newP;
         insertProduct(newP);
         p = newP;
     }
-    if (!skipSave)
-        saveCustomerProgress(customerID, p->productID, p->name, rating, review);
-}
 
-static void addProductReview(const char *productID_in, const char *name_in, const char *customerID_in, float rating, const char *review) {
-    addProductReviewInternal(productID_in, name_in, customerID_in, rating, review, 0);
+    if (!skipSave)
+        saveCustomerProgress(customerID, p->productID, p->name, rating, review, timestamp);
 }
 
 static void loadAllCustomerReviews(void) {
@@ -254,9 +260,11 @@ static void loadAllCustomerReviews(void) {
             char *pname = strtok(NULL, "|");
             char *rstr = strtok(NULL, "|");
             char *rev = strtok(NULL, "|");
-            if (pid && pname && rstr && rev) {
+            char *timeStr = strtok(NULL, "|");
+            if (pid && pname && rstr && rev && timeStr) {
                 float rating = strtof(rstr, NULL);
                 addProductReviewInternal(pid, pname, customers[i].customerID, rating, rev, 1);
+                // store timeStr also if needed for display
             }
         }
         fclose(fp);
@@ -273,7 +281,8 @@ static void searchProduct(void) {
         printf("\nProduct Found:\n");
         printf("ID: %s | Name: %s | Avg Rating: %.2f\n", p->productID, p->name, p->avgRating);
         for (int i = 0; i < p->reviewCount; i++)
-            printf(" Customer: %s | %.2f - %s\n", p->reviews[i].customerID, p->reviews[i].rating, p->reviews[i].review);
+            printf(" Customer: %s | %.2f - %s | Time: %s\n", 
+                   p->reviews[i].customerID, p->reviews[i].rating, p->reviews[i].review, p->reviews[i].timestamp);
         if (searchCount < MAX_HISTORY) strcpy(searchHistory[searchCount++], id);
     } else printf("Product not found!\n");
 }
@@ -294,10 +303,8 @@ static void displayTopRated(void) {
                 products[j + 1] = t;
             }
     printf("\n--- Top %d Rated Products ---\n", n);
-    for (int i = 0; i < n; i++) {
-        Product *p = products[i];
-        printf("%d. ID: %s | Name: %s | Avg Rating: %.2f\n", i + 1, p->productID, p->name, p->avgRating);
-    }
+    for (int i = 0; i < n; i++)
+        printf("%d. ID: %s | Name: %s | Avg Rating: %.2f\n", i + 1, products[i]->productID, products[i]->name, products[i]->avgRating);
 }
 
 int main(void) {
@@ -306,7 +313,7 @@ int main(void) {
     float rating;
 
     loadCustomers();
-    loadAllCustomerReviews(); // NEW: load all previously saved product reviews
+    loadAllCustomerReviews();
 
     for (;;) {
         printf("\n--- Login Required ---\n");
@@ -342,7 +349,7 @@ int main(void) {
                         Product *existingProduct = findProduct(pid);
                         if (existingProduct) {
                             printf("Product found: %s\n", existingProduct->name);
-                            strncpy(name, existingProduct->name, MAX_STR_LEN);
+                            strcpy(name, existingProduct->name);
                         } else {
                             printf("Enter Product Name: ");
                             readLine(name, sizeof name);
@@ -355,13 +362,13 @@ int main(void) {
                     int yn = getchar();
                     while (yn == '\n') yn = getchar();
                     if (yn == 'N' || yn == 'n')
-                        strncpy(review, "No review provided.", MAX_STR_LEN);
+                        strcpy(review, "No review provided.");
                     else {
                         while ((ch2 = getchar()) != '\n' && ch2 != EOF);
                         printf("Enter Review: ");
                         readLine(review, sizeof review);
                     }
-                    addProductReview(pid, name, loggedIn->customerID, rating, review);
+                    addProductReviewInternal(pid, name, loggedIn->customerID, rating, review, 0);
                     break;
                 case 2:
                     searchProduct();

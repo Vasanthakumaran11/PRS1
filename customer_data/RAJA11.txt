@@ -1,0 +1,4 @@
+A1|lap|4.00|No review provided.|2025-11-08 13:54:03
+5432|smart phone|3.50|good|2025-11-09 12:11:39
+1357|tube light|2.00|No review provided.|2025-11-09 12:12:18
+5793|watch|3.50|comfort to wear and useful|2025-11-09 12:13:53

@@ -1,15 +1,13 @@
 from pydantic import BaseModel
 
-class ProductBase(BaseModel):
-    name: str
-    description: str
-    price: float
+def product_schema(product):
+    return {
+        "_id": str(product["_id"]),
+        "productId": product["productId"],
+        "name": product["name"],
+        "avgRating": product["avgRating"],
+        "reviewCount": product["reviewCount"]
+    }
 
-class ProductCreate(ProductBase):
-    pass
-
-class Product(ProductBase):
-    id: int
-
-    class Config:
-        from_attributes = True
+def products_schema(products):
+    return [product_schema(product) for product in products]

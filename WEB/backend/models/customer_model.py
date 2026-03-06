@@ -1,10 +1,10 @@
-from sqlalchemy import Column, Integer, String
-from database import Base
+from pydantic import BaseModel, Field
+from typing import Optional
 
-class Customer(Base):
-    __tablename__ = "customers"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+class customers(BaseModel):
+    _id: str = Field(default_factory=str(ObjectId))
+    customerId: str = Field(default_factory=str(ObjectId))
+    name: str
+    email: str
+    password: str
+    createdAt: str = Field(default_factory=str(datetime.now()))

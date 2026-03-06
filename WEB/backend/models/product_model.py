@@ -1,10 +1,9 @@
-from sqlalchemy import Column, Integer, String, Float
-from database import Base
+from pydantic import BaseModel, Field
+from typing import Optional
 
-class Product(Base):
-    __tablename__ = "products"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String)
-    price = Column(Float)
+class products(BaseModel):
+    _id: str = Field(default_factory=str(ObjectId))
+    productId: str = Field(default_factory=str(ObjectId))
+    name: str
+    avgRating : float
+    reviewCount : int

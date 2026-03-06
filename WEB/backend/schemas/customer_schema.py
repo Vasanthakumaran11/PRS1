@@ -1,14 +1,13 @@
 from pydantic import BaseModel, EmailStr
+def review_schema(review):
+    return {
+        "_id": str(review["_id"]),
+        "productId": review["productId"],
+        "customerId": review["customerId"],
+        "rating": review["rating"],
+        "review": review["review"],
+        "timestamp": review["timestamp"]
+    }
 
-class CustomerBase(BaseModel):
-    name: str
-    email: EmailStr
-
-class CustomerCreate(CustomerBase):
-    password: str
-
-class Customer(CustomerBase):
-    id: int
-
-    class Config:
-        from_attributes = True
+def reviews_schema(reviews):
+    return [review_schema(review) for review in reviews]

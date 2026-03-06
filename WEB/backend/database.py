@@ -1,19 +1,11 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
+from pymongo import MongoClient
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+MONGO_URL = "your_connection_string"
 
-Base = declarative_base()
+client = MongoClient(MONGO_URL)
+db = client["PRS_Database"]
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+customers_collection = db["customers"]
+products_collection = db["products"]
+reviews_collection = db["reviews"]

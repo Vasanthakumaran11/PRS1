@@ -7,28 +7,61 @@ from schemas.product_schema import product_schema
 
 router = APIRouter()
 
+
+# ─────────────────────────────────────────
+# ENDPOINT 5: POST /review
+# ─────────────────────────────────────────
 @router.post("/review")
 async def add_review(review: ReviewModel):
-    pr = products_collection.find_one({"productId": review.productId})  
-    if not pr:
-        new_pr = products_collection.insert_one({
+
+    # ── STEP 1: Check if the product exists ──────────────────
+    product = products_collection.find_one({"productId": review.productId})
+
+    if not product:
+        # Product doesn't exist yet — create it now
+        new_product = {
             "productId": review.productId,
-            "name": review.productName,
+            "name": review.productName,   # name comes in with the review
             "avgRating": 0.0,
             "reviewCount": 0
-        })
-    new_review = reviews_collection.insert_one({
-            "productId": review.productId,
-            "customerId": review.customerId,
-            "rating": review.rating,
-            "review": review.review,
-            "timestamp": datetime.now()
-    })
-    
-    all_reviews = reviews_collection.find({"productId": review.productId})
-    total_rating = sum(review["rating"] for review in all_reviews)
-    count = len(all_reviews)
-    new_avg_rating = total_rating / count
-    products_collection.update_one({"productId": review.productId}, {"$set": {"avgRating": new_avg_rating, "reviewCount": count}})  
-    return {"message": "Review added successfully"}
-    
+        }
+        products_collection.insert_one(new_product)
+
+
+    # ── STEP 2: Save the review ──────────────────────────────
+    new_review = {
+        "productId": review.productId,
+        "customerId": review.customerId,
+        "rating": review.rating,
+        "review": review.review,
+        "timestamp": datetime.now()       # auto-set timestamp here
+    }
+    reviews_collection.insert_one(new_review)
+
+
+    # ── STEP 3: Recalculate average rating ───────────────────
+    # Fetch ALL reviews for this product (including the one just added)
+    all_reviews = list(reviews_collection.find({"productId": review.productId}))
+
+    total_ratings = sum(r["rating"] for r in all_reviews)   # sum all ratings
+    count = len(all_reviews)                                  # how many reviews
+    new_avg = round(total_ratings / count, 2)                 # average, 2 decimals
+
+
+    # ── STEP 4: Update the product document ──────────────────
+    products_collection.update_one(
+        {"productId": review.productId},           # find product by this
+        {"$set": {                                  # $set = update these fields
+            "avgRating": new_avg,
+            "reviewCount": count
+        }}
+    )
+
+
+    # ── STEP 5: Return updated product info ──────────────────
+    updated_product = products_collection.find_one({"productId": review.productId})
+
+    return {
+        "message": "Review added successfully",
+        "product": product_schema(updated_product)
+    }

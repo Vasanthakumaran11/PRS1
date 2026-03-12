@@ -1,18 +1,22 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
-
-from database import products_collection, reviews_collection
+from typing import Optional
+from pydantic import BaseModel
+from database import products_collection, reviews_collection, customers_collection
 from models.review_model import ReviewModel
 from schemas.product_schema import product_schema
+from schemas.review_schema import review_schema
 
 router = APIRouter()
 
 
-# ─────────────────────────────────────────
-# ENDPOINT 5: POST /review
-# ─────────────────────────────────────────
 @router.post("/review")
 async def add_review(review: ReviewModel):
+    # ── STEP 0: Check if the user is registered ──────────────
+    user = customers_collection.find_one({"customerId": review.customerId})
+    if not user:
+        return {"error": "User not registered, please register to add a review"}
+
 
     # ── STEP 1: Check if the product exists ──────────────────
     product = products_collection.find_one({"productId": review.productId})
@@ -64,4 +68,11 @@ async def add_review(review: ReviewModel):
     return {
         "message": "Review added successfully",
         "product": product_schema(updated_product)
+    }
+
+@router.get("/reviews")
+async def get_reviews(productId: str, productName: Optional[str] = None):
+    reviews = list(reviews_collection.find({"productId": productId}))
+    return {
+        "reviews": [review_schema(review) for review in reviews]
     }

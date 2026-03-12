@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-class products(BaseModel):
-    _id: str = Field(default_factory=str(ObjectId))
-    productId: str = Field(default_factory=str(ObjectId))
+class ProductModel(BaseModel):
+    _id: Optional[str] = None
+    productId: str 
     name: str
     avgRating : float
     reviewCount : int

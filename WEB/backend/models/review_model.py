@@ -1,10 +1,13 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
-class reviews(BaseModel):
-    _id: str = Field(default_factory=str(ObjectId))
-    productId: str = Field(default_factory=str(ObjectId))
-    customerId: str = Field(default_factory=str(ObjectId))
+
+class ReviewModel(BaseModel):
+    _id: Optional[str] = None
+    productId: str 
+    productName: Optional[str] = None
+    customerId: str 
     rating: float
     review : str
-    timestamp : str = Field(default_factory=str(datetime.now()))
+    timestamp : Optional[datetime] = Field(default_factory=datetime.now)

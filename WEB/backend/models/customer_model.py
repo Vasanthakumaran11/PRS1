@@ -1,10 +1,11 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
-class customers(BaseModel):
-    _id: str = Field(default_factory=str(ObjectId))
-    customerId: str = Field(default_factory=str(ObjectId))
-    name: str
+class CustomerModel(BaseModel):
+    _id: Optional[str] = None
+    customerId: Optional[str] = None
+    name: Optional[str] = None
     email: str
     password: str
-    createdAt: str = Field(default_factory=str(datetime.now()))
+    createdAt: Optional[datetime] = None

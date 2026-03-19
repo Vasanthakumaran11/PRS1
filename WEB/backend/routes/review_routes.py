@@ -1,24 +1,19 @@
-from fastapi import APIRouter, HTTPException
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel
-from database import products_collection, reviews_collection, customers_collection
-from models.review_model import ReviewModel
-from schemas.product_schema import product_schema
-from schemas.review_schema import review_schema
+from fastapi import APIRouter, Depends, HTTPException
+from pymongo.errors import DuplicateKeyError
+
+from models.review_model import ReviewCreate
+from schemas.product_schema import product_serializer
+from database import products_collection, reviews_collection
+from auth import get_current_user
 
 router = APIRouter()
 
-
-@router.post("/review")
-async def add_review(review: ReviewModel):
-   
-    user = customers_collection.find_one({"customerId": review.customerId})
-    if not user:
-        return {"error": "User not registered, please register to add a review"}
-
+@router.post("/add-review")
+def add_review(review: ReviewCreate, current_user: dict = Depends(get_current_user)):
+    customer_id = current_user.get("customerId")
+    
     product = products_collection.find_one({"productId": review.productId})
-
     if not product:
         new_product = {
             "productId": review.productId,
@@ -27,34 +22,54 @@ async def add_review(review: ReviewModel):
             "reviewCount": 0
         }
         products_collection.insert_one(new_product)
+        product = products_collection.find_one({"productId": review.productId})
+        
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found after creation attempt")
+        
+    existing_review = reviews_collection.find_one({
+        "productId": review.productId,
+        "customerId": customer_id
+    })
+    
+    if existing_review:
+        raise HTTPException(status_code=400, detail="You have already reviewed this product")
+        
     new_review = {
         "productId": review.productId,
-        "customerId": review.customerId,
+        "customerId": customer_id,
         "rating": review.rating,
         "review": review.review,
-        "timestamp": datetime.now()
+        "timestamp": datetime.utcnow()
     }
-    reviews_collection.insert_one(new_review)
-    all_reviews = list(reviews_collection.find({"productId": review.productId}))
-    total_ratings = sum(r["rating"] for r in all_reviews)
-    count = len(all_reviews)
-    new_avg = round(total_ratings / count, 2)
+    
+    try:
+        reviews_collection.insert_one(new_review)
+    except DuplicateKeyError:
+        raise HTTPException(status_code=400, detail="You have already reviewed this product")
+        
+    all_reviews_cursor = reviews_collection.find({"productId": review.productId})
+    all_reviews = list(all_reviews_cursor)
+    
+    review_count = len(all_reviews)
+    if review_count > 0:
+        total_rating = sum(r["rating"] for r in all_reviews)
+        avg_rating = round(total_rating / review_count, 2)
+    else:
+        avg_rating = 0.0
+        
     products_collection.update_one(
         {"productId": review.productId},
         {"$set": {
-            "avgRating": new_avg,
-            "reviewCount": count
+            "avgRating": avg_rating,
+            "reviewCount": review_count
         }}
     )
+    
     updated_product = products_collection.find_one({"productId": review.productId})
+    
     return {
+        "success": True,
         "message": "Review added successfully",
-        "product": product_schema(updated_product)
-    }
-
-@router.get("/reviews")
-async def get_reviews(productId: str, productName: Optional[str] = None):
-    reviews = list(reviews_collection.find({"productId": productId}))
-    return {
-        "reviews": [review_schema(review) for review in reviews]
+        "data": product_serializer(updated_product)
     }

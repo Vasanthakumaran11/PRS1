@@ -1,54 +1,71 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from passlib.context import CryptContext
-from database import customers_collection,products_collection,reviews_collection
-from datetime import datetime
 import uuid
-from models.customer_model import CustomerModel
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, status
+from models.customer_model import CustomerCreate, CustomerLogin
+from database import customers_collection
+from auth import get_password_hash, verify_password, create_jwt_token
 
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 router = APIRouter()
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
 @router.post("/register")
-async def register(customer : CustomerModel):
-    name = customer.name
-    email = customer.email
-    password = customer.password
-    datetime1 = datetime.now()
-
-    exists = customers_collection.find_one({"email": email})
-    if exists:
-        return {"message": "User already registered, please login"}
-    else:
-        hashed_pw = pwd_context.hash(customer.password)
-        new_customer = {
-            "customerId": str(uuid.uuid4()),
-            "name": name,
-            "email": email,
-            "password": hashed_pw,
-            "createdAt": datetime1
-        }
-        customers_collection.insert_one(new_customer)
-        return {"message": "Registration successful"}
-
-@router.post("/login")
-async def login(user: LoginRequest):
-    email = user.email
-    password = user.password
-    customer = customers_collection.find_one({"email": email})
-    if not customer:
-        return {"message": "Registration required"}
-
-    is_valid = pwd_context.verify(password, customer.get("password", ""))
-    if not is_valid:
-        raise HTTPException(status_code=401, detail="Invalid password")
+def register_user(user: CustomerCreate):
+    # Check email uniqueness
+    existing_user = customers_collection.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+        
+    # Hash password
+    hashed_password = get_password_hash(user.password)
+    
+    # Generate customerId
+    customer_id = "C-" + str(uuid.uuid4())[:6].upper()
+    
+    # Insert into db
+    new_user = {
+        "customerId": customer_id,
+        "name": user.name,
+        "email": user.email,
+        "password": hashed_password,
+        "createdAt": datetime.utcnow()
+    }
+    customers_collection.insert_one(new_user)
     
     return {
+        "success": True,
+        "message": "User registered successfully",
+        "data": {
+            "customerId": customer_id
+        }
+    }
+
+@router.post("/login")
+def login_user(user: CustomerLogin):
+    # Find customer by email
+    db_user = customers_collection.find_one({"email": user.email})
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Customer not found")
+        
+    # Verify password
+    if not verify_password(user.password, db_user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+    # Generate JWT
+    payload = {
+        "customerId": db_user["customerId"],
+        "name": db_user["name"],
+        "email": db_user["email"]
+    }
+    token = create_jwt_token(payload)
+    
+    return {
+        "success": True,
         "message": "Login successful",
-        "customerId": customer.get("customerId", "unknown"),
-        "name": customer.get("name", "User")
+        "data": {
+            "token": token,
+            "customer": {
+                "customerId": db_user["customerId"],
+                "name": db_user["name"],
+                "email": db_user["email"]
+            }
+        }
     }

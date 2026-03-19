@@ -1,13 +1,11 @@
-from pydantic import BaseModel, EmailStr
-def review_schema(review):
+def customer_serializer(customer) -> dict:
     return {
-        "_id": str(review["_id"]),
-        "productId": review["productId"],
-        "customerId": review["customerId"],
-        "rating": review["rating"],
-        "review": review["review"],
-        "timestamp": review["timestamp"]
+        "id": str(customer["_id"]),
+        "customerId": customer.get("customerId"),
+        "name": customer.get("name"),
+        "email": customer.get("email"),
+        "createdAt": customer.get("createdAt")
     }
 
-def reviews_schema(reviews):
-    return [review_schema(review) for review in reviews]
+def customer_list_serializer(customers) -> list:
+    return [customer_serializer(customer) for customer in customers]

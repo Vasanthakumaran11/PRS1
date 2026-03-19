@@ -1,13 +1,11 @@
-from pydantic import BaseModel
-
-def product_schema(product):
+def product_serializer(product) -> dict:
     return {
-        "_id": str(product["_id"]),
-        "productId": product["productId"],
-        "name": product["name"],
-        "avgRating": product["avgRating"],
-        "reviewCount": product["reviewCount"]
+        "id": str(product["_id"]),
+        "productId": product.get("productId"),
+        "name": product.get("name"),
+        "avgRating": product.get("avgRating", 0.0),
+        "reviewCount": product.get("reviewCount", 0)
     }
 
-def products_schema(products):
-    return [product_schema(product) for product in products]
+def product_list_serializer(products) -> list:
+    return [product_serializer(product) for product in products]

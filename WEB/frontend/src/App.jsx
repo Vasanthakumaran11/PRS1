@@ -1,50 +1,70 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Navbar from './components/layout/Navbar';
+import HomePage from './pages/HomePage';
+import CategoryPage from './pages/CategoryPage';
+import ProductsPage from './pages/ProductsPage';
+import ProductDetailsPage from './pages/ProductDetailsPage';
+import CartPage from './pages/CartPage';
+import HelpPage from './pages/HelpPage';
+import ProfilePage from './pages/ProfilePage';
+import TopRatedPage from './pages/TopRatedPage';
 
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import ProductDetails from './pages/ProductDetails';
-
-const ProtectedRoute = ({ children }) => {
-    const { token } = useAuth();
-    if (!token) {
-        return <Navigate to="/" replace />;
-    }
-    return children;
-};
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 function App() {
-    return (
-        <AuthProvider>
-            <Router>
-                <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-                    <Routes>
-                        <Route path="/" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route 
-                            path="/dashboard" 
-                            element={
-                                <ProtectedRoute>
-                                    <Dashboard />
-                                </ProtectedRoute>
-                            } 
-                        />
-                        <Route 
-                            path="/product/:id" 
-                            element={
-                                <ProtectedRoute>
-                                    <ProductDetails />
-                                </ProtectedRoute>
-                            } 
-                        />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </div>
-            </Router>
-        </AuthProvider>
-    );
+  // Detect page refresh and clear everything to start fresh
+  const isReload = performance.getEntriesByType('navigation')[0]?.type === 'reload';
+  if (isReload) {
+    localStorage.clear();
+  }
+
+  const [isAuthenticated, setIsAuthenticated] = React.useState(
+    localStorage.getItem('isAuthenticated') === 'true'
+  );
+
+  const handleLogin = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen bg-transparent transition-colors duration-300">
+        <Toaster position="top-right" />
+        
+        {isAuthenticated ? (
+          <>
+            <Navbar onLogout={handleLogout} />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/category/:categoryId" element={<CategoryPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/product/:productId" element={<ProductDetailsPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/top-rated" element={<TopRatedPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </>
+        ) : (
+          <Routes>
+            <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+            <Route path="/signup" element={<SignupPage onLogin={handleLogin} />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        )}
+      </div>
+    </BrowserRouter>
+  );
 }
 
 export default App;

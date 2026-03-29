@@ -1,26 +1,39 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const ProductCard = ({ productId, name, avgRating, reviewCount }) => {
-    const navigate = useNavigate();
-
-    return (
-        <div 
-            onClick={() => navigate(`/product/${productId}`)}
-            className="rounded-2xl shadow-md p-6 bg-white cursor-pointer hover:shadow-lg transition flex flex-col items-start gap-3"
-        >
-            <h3 className="text-xl font-bold text-gray-800">{name}</h3>
-            <span className="text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">ID: {productId}</span>
-            <div className="flex items-center gap-2 mt-auto">
-                <div className="flex items-center text-yellow-500">
-                    <Star size={18} fill="currentColor" />
-                    <span className="ml-1 font-semibold">{avgRating.toFixed(1)}</span>
-                </div>
-                <span className="text-gray-400 text-sm">({reviewCount} reviews)</span>
-            </div>
+const ProductCard = ({ product }) => {
+  return (
+    <Link to={`/product/${product.id}`} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl hover:border-[#8cc63f]/60 dark:hover:border-[#8cc63f]/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-700/80">
+      <div className="relative aspect-square overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700/80 p-8 flex items-center justify-center">
+        <img 
+          src={product.image} 
+          alt={product.name}
+          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply dark:mix-blend-normal"
+        />
+      </div>
+      <div className="p-4 flex flex-col flex-grow">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider font-medium">{product.category}</p>
+        <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-2 line-clamp-2">{product.name}</h3>
+        
+        <div className="flex flex-col mb-3 mt-auto">
+          <div className="flex text-yellow-400 mb-1">
+            {[...Array(5)].map((_, i) => (
+              <Star 
+                key={i} 
+                className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'fill-current' : 'text-gray-300'}`} 
+              />
+            ))}
+          </div>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{product.reviewsCount?.toLocaleString()} reviews</span>
         </div>
-    );
+        
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-xl text-gray-900 dark:text-gray-100">${product.price.toFixed(2)}</span>
+        </div>
+      </div>
+    </Link>
+  );
 };
 
 export default ProductCard;

@@ -9,6 +9,7 @@ const SignupPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [location, setLocation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,12 +26,29 @@ const SignupPage = ({ onLogin }) => {
     
     try {
       setIsLoading(true);
-      await authAPI.register({ name, email, password });
+      await authAPI.register({ 
+        name, 
+        email, 
+        password,
+        location: location || "Unknown" 
+      });
       toast.success('Account created successfully! Please log in.');
       navigate('/login');
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || 'Registration failed. Please try again.';
-      toast.error(errorMessage);
+      if (error.response?.status === 422) {
+        // Detailed Pydantic validation errors
+        const details = error.response.data.detail;
+        if (Array.isArray(details)) {
+          const firstError = details[0];
+          const field = firstError.loc[firstError.loc.length - 1];
+          toast.error(`${field}: ${firstError.msg}`);
+        } else {
+          toast.error("Invalid data provided.");
+        }
+      } else {
+        const errorMessage = error.response?.data?.detail || 'Registration failed. Please try again.';
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }

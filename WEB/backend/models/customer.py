@@ -9,13 +9,13 @@ from datetime import datetime
 class CustomerRegister(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=6, max_length=72)
     location: Optional[str] = "Unknown"
 
 
 class CustomerLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., max_length=72)
 
 
 class CustomerOut(BaseModel):

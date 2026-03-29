@@ -7,9 +7,14 @@ Features:
   - Startup seeder: inserts 6 demo products matching frontend mock data if DB is empty
   - Interactive Swagger docs at http://localhost:8000/docs
 """
+import sys
+import os
 from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Add backend directory to sys.path to enable absolute imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import all route modules
 from routes import auth, product, review, cart, decision
@@ -40,8 +45,9 @@ app.add_middleware(
         "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
+    max_age=3600,
 )
 
 # ---------------------------------------------------------------------------

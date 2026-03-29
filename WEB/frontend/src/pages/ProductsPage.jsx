@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
-import { mockProducts, categories } from '../data/mockData';
+import { categories } from '../data/mockData';
 import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { productAPI } from '../services/api';
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get('search') || '';
   const [query, setQuery] = useState(search);
   
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -23,42 +24,44 @@ const ProductsPage = () => {
   // Tabs generated from mockData categories + "All"
   const filterTabs = [{ id: 'all', name: 'All Products' }, ...categories];
 
-  // Simulated fetching effect
+  // Fetching effect
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      let result = [...mockProducts];
-      
-      // 1. Filter by search
-      if (search) {
-        result = result.filter(p => 
-          p.name.toLowerCase().includes(search.toLowerCase()) || 
-          p.id.toLowerCase().includes(search.toLowerCase())
-        );
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        let response;
+        
+        if (search) {
+          response = await productAPI.search(search);
+        } else if (activeTab !== 'all') {
+          response = await productAPI.getByCategory(activeTab);
+        } else {
+          response = await productAPI.getAll();
+        }
+
+        let result = response.data;
+        
+        // Apply Sort locally for now as backend sorting is limited
+        if (sortBy === 'price_asc') {
+          result.sort((a, b) => a.price_amazon - b.price_amazon);
+        } else if (sortBy === 'price_desc') {
+          result.sort((a, b) => b.price_amazon - a.price_amazon);
+        } else if (sortBy === 'top_rated') {
+          result.sort((a, b) => b.avgRating - a.avgRating);
+        } else if (sortBy === 'most_reviewed') {
+          result.sort((a, b) => b.reviewCount - a.reviewCount);
+        }
+
+        setAllProducts(result);
+        setDisplayedProducts(result.slice(0, page * itemsPerPage));
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      // 2. Filter by category tab
-      if (activeTab !== 'all') {
-        result = result.filter(p => p.category === activeTab);
-      }
-
-      // 3. Sort
-      if (sortBy === 'price_asc') {
-        result.sort((a, b) => a.price - b.price);
-      } else if (sortBy === 'price_desc') {
-        result.sort((a, b) => b.price - a.price);
-      } else if (sortBy === 'top_rated') {
-        result.sort((a, b) => b.rating - a.rating);
-      } else if (sortBy === 'most_reviewed') {
-        result.sort((a, b) => b.reviewsCount - a.reviewsCount);
-      }
-
-      setFilteredProducts(result);
-      setDisplayedProducts(result.slice(0, page * itemsPerPage));
-      setIsLoading(false);
-    }, 600); // 600ms artificial delay
-
-    return () => clearTimeout(timer);
+    fetchData();
   }, [search, activeTab, sortBy, page]);
 
   // When search parameter changes, reset active tab and query input
@@ -170,7 +173,7 @@ const ProductsPage = () => {
               </div>
               
               {/* Load More Button */}
-              {displayedProducts.length < filteredProducts.length && (
+              {displayedProducts.length < allProducts.length && (
                 <div className="mt-12 text-center">
                   <button 
                     onClick={loadMore}
@@ -179,7 +182,7 @@ const ProductsPage = () => {
                     Load More Products
                   </button>
                   <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-                    Showing {displayedProducts.length} of {filteredProducts.length} results
+                    Showing {displayedProducts.length} of {allProducts.length} results
                   </p>
                 </div>
               )}

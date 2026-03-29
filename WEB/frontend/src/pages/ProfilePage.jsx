@@ -1,19 +1,34 @@
-import React from 'react';
-import { User, Mail, Calendar, Settings, Edit3, Shield, Package } from 'lucide-react';
-import { mockReviews, mockProducts } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Calendar, Settings, Edit3, Shield, Package, MapPin } from 'lucide-react';
+import { productAPI, authAPI, reviewAPI } from '../services/api';
 import { Link } from 'react-router-dom';
 
 const ProfilePage = () => {
-  // Mock data for logged in user
-  const user = {
-    name: 'John Doe',
-    email: 'john@example.com',
-    joinDate: 'March 2023',
-    tier: 'Gold Member'
-  };
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const userReviews = mockReviews.filter(r => r.userId === "John Doe" || r.userId === "Sarah Smith"); // Mock matching some strings
-  const orderHistory = mockProducts.slice(0, 3); // Mock ordered items
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const response = await authAPI.getMe();
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (isLoading) {
+    return <div className="pt-24 text-center min-h-screen">Loading Profile...</div>;
+  }
+
+  if (!user) {
+    return <div className="pt-24 text-center min-h-screen">User Not Found. Please log in.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-24 pb-16">
@@ -35,12 +50,12 @@ const ProfilePage = () => {
                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-1">{user.name}</h2>
                <p className="text-gray-500 dark:text-gray-400 font-medium mb-6">{user.email}</p>
                
-               <div className="flex justify-center gap-4 mb-8">
-                  <div className="bg-yellow-50 px-4 py-2 rounded-xl text-yellow-700 font-bold border border-yellow-100 flex items-center">
-                    <Shield className="w-4 h-4 mr-2" /> {user.tier}
+               <div className="flex flex-col gap-3 mb-8">
+                  <div className="bg-yellow-50 px-4 py-2 rounded-xl text-yellow-700 font-bold border border-yellow-100 flex items-center justify-center">
+                    <Shield className="w-4 h-4 mr-2" /> Verified Member
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" /> {user.joinDate}
+                  <div className="bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center justify-center">
+                    <MapPin className="w-4 h-4 mr-2" /> {user.location}
                   </div>
                </div>
                
@@ -50,62 +65,12 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Right Main Content */}
+          {/* Right Main Content placeholder */}
           <div className="w-full lg:w-2/3 space-y-8">
-             
-             {/* Order History Mock */}
              <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
-                <div className="flex items-center justify-between mb-6">
-                   <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                     <Package className="w-6 h-6 mr-3 text-blue-600" /> Recent Orders
-                   </h3>
-                   <span className="text-blue-600 font-semibold cursor-pointer hover:underline text-sm">View All</span>
-                </div>
-                
-                <div className="space-y-4">
-                  {orderHistory.map(order => (
-                    <div key={order.id} className="flex items-center p-4 border border-gray-100 dark:border-gray-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-900 transition group cursor-pointer">
-                      <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 flex-shrink-0 mr-4">
-                         <img src={order.image} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                      </div>
-                      <div className="flex-1">
-                         <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg line-clamp-1">{order.name}</h4>
-                         <p className="text-sm text-gray-500 dark:text-gray-400">Delivered on {new Date().toLocaleDateString()}</p>
-                      </div>
-                      <div className="font-black text-gray-900 dark:text-gray-100 text-xl">${order.price.toFixed(2)}</div>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Welcome back, {user.name}!</h3>
+                <p className="text-gray-500 dark:text-gray-400">This is your personal dashboard. Here you can manage your account, view your activity, and see your customized product recommendations from our Smart Decision Engine.</p>
              </div>
-
-             {/* Past Reviews */}
-             <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center mb-6">
-                  <Edit3 className="w-6 h-6 mr-3 text-green-600" /> My Reviews
-                </h3>
-                
-                {userReviews.length > 0 ? (
-                  <div className="space-y-6">
-                    {userReviews.map(review => {
-                      const product = mockProducts.find(p => p.id === review.productId);
-                      return (
-                        <div key={review.id} className="border-b border-gray-100 dark:border-gray-700 pb-6 last:border-0 last:pb-0">
-                          <Link to={`/product/${product?.id}`} className="font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition mb-2 block">{product?.name}</Link>
-                          <div className="flex text-yellow-400 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-gray-200'}`} viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            ))}
-                          </div>
-                          <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl text-sm italic border border-gray-100 dark:border-gray-700">"{review.text}"</p>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                   <p className="text-gray-500 dark:text-gray-400">You haven't written any reviews yet.</p>
-                )}
-             </div>
-
           </div>
         </div>
       </div>

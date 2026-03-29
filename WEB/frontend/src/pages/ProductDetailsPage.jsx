@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Star, ShoppingCart, X, CheckCircle, ThumbsUp, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { mockProducts, mockReviews } from '../data/mockData';
+import { productAPI, reviewAPI, cartAPI } from '../services/api';
 
 const ProductDetailsPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const product = mockProducts.find(p => p.id === productId);
   
-  const [activeImage, setActiveImage] = useState(product?.image);
+  const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState('');
   const [reviewViewMode, setReviewViewMode] = useState('summary');
   const [ratingInput, setRatingInput] = useState(5);
   const [reviewKeyword, setReviewKeyword] = useState('');
@@ -18,21 +20,40 @@ const ProductDetailsPage = () => {
   const [reviewFilter, setReviewFilter] = useState('All');
   
   useEffect(() => {
-    // Reset state on navigation change
-    if (product) {
-      setActiveImage(product.image);
-    }
-  }, [productId, product]);
+    const fetchProductData = async () => {
+      try {
+        setIsLoading(true);
+        const [prodRes, revRes] = await Promise.all([
+          productAPI.getById(productId),
+          reviewAPI.getByProduct(productId)
+        ]);
+        setProduct(prodRes.data);
+        setReviews(revRes.data);
+        setActiveImage(prodRes.data.image);
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+        toast.error("Failed to load product details.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProductData();
+  }, [productId]);
+
+  if (isLoading) {
+    return <div className="pt-24 text-center min-h-screen">Loading Product Details...</div>;
+  }
 
   if (!product) {
     return <div className="pt-24 text-center min-h-screen">Product Not Found</div>;
   }
 
-  const relatedProducts = mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
-  const reviews = mockReviews.filter(r => r.productId === product.id);
+  // Related products logic (mock for now or could fetch by category)
+  const relatedProducts = []; // Simplified for now
+
   const filteredReviews = reviewFilter === 'All' ? reviews : reviews.filter(r => r.rating === parseInt(reviewFilter));
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewKeyword && !showDetailedReview) {
       toast.error('Please select a quick response or write a detailed review.');
@@ -42,25 +63,39 @@ const ProductDetailsPage = () => {
       toast.error('Please enter a detailed review.');
       return;
     }
-    toast.success(`Review Submitted Successfully!`);
-    setReviewText('');
-    setReviewKeyword('');
-    setShowDetailedReview(false);
-    setRatingInput(5);
-    setReviewViewMode('read');
+
+    try {
+      await reviewAPI.addReview({
+        productId,
+        rating: ratingInput,
+        review: showDetailedReview ? reviewText : reviewKeyword,
+        keyword: reviewKeyword
+      });
+
+      toast.success(`Review Submitted Successfully!`);
+      
+      // Refresh reviews
+      const revRes = await reviewAPI.getByProduct(productId);
+      setReviews(revRes.data);
+
+      setReviewText('');
+      setReviewKeyword('');
+      setShowDetailedReview(false);
+      setRatingInput(5);
+      setReviewViewMode('read');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to submit review.");
+    }
   };
 
-  const addToCart = () => {
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItem = existingCart.find(i => i.id === product.id);
-    if (existingItem) {
-      existingItem.quantity += 1;
-      localStorage.setItem('cart', JSON.stringify(existingCart));
-    } else {
-      localStorage.setItem('cart', JSON.stringify([...existingCart, { ...product, quantity: 1 }]));
+  const addToCart = async () => {
+    try {
+      await cartAPI.add({ productId: product.productId });
+      window.dispatchEvent(new Event('cartUpdated'));
+      toast.success(`${product.name} added to cart!`);
+    } catch (error) {
+      toast.error("Failed to add to cart. Are you logged in?");
     }
-    window.dispatchEvent(new Event('cartUpdated'));
-    toast.success(`${product.name} added to cart!`);
   };
 
   // Fake Histogram Data

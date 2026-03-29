@@ -1,9 +1,0 @@
-# Product Review System (PRS) Backend Dependencies
-# This file tracks all Python dependencies for the project.
-# To install these dependencies, run: pip install -r requirements.txt
-
-fastapi
-uvicorn[standard]
-pymongo
-pydantic
-python-dotenv

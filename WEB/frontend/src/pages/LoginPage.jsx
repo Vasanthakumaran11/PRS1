@@ -2,26 +2,40 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { authAPI } from '../services/api';
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email && password) {
-      // Create user name if not naturally passed through from Signup
-      if (!localStorage.getItem('userName')) {
-        const potentialName = email.split('@')[0];
-        localStorage.setItem('userName', potentialName.charAt(0).toUpperCase() + potentialName.slice(1));
-      }
+    if (!email || !password) {
+      toast.error('Please enter both email and password');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await authAPI.login({ email, password });
+      
+      const { access_token, customerId, name } = response.data;
+      
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('customerId', customerId);
+      localStorage.setItem('userName', name);
+      localStorage.setItem('isAuthenticated', 'true');
 
       toast.success('Login Successful!');
-      onLogin(); // updates App.js state
+      if (onLogin) onLogin();
       navigate('/');
-    } else {
-      toast.error('Please enter both email and password');
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail || 'Login failed. Please check your credentials.';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,9 +91,10 @@ const LoginPage = ({ onLogin }) => {
 
            <button 
              type="submit" 
-             className="w-full py-3 px-4 bg-[#004b36] text-white font-bold rounded-lg shadow-md hover:bg-[#003828] transition duration-200 mt-6"
+             disabled={isLoading}
+             className="w-full py-3 px-4 bg-[#004b36] text-white font-bold rounded-lg shadow-md hover:bg-[#003828] transition duration-200 mt-6 disabled:opacity-50"
            >
-             Log in
+             {isLoading ? 'Logging in...' : 'Log in'}
            </button>
         </form>
 

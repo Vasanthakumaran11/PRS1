@@ -1,13 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { categories, mockProducts } from '../data/mockData';
+import ProductSkeleton from '../components/ProductSkeleton';
+import { categories } from '../data/mockData';
 import { ArrowLeft } from 'lucide-react';
+import { productAPI } from '../services/api';
 
 const CategoryPage = () => {
   const { categoryId } = useParams();
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const category = categories.find(c => c.id === categoryId);
-  const products = mockProducts.filter(p => p.category === categoryId);
+
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await productAPI.getByCategory(categoryId);
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching category products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCategoryProducts();
+  }, [categoryId]);
 
   if (!category) {
     return (
@@ -36,10 +54,14 @@ const CategoryPage = () => {
         </div>
 
         {/* Product Grid */}
-        {products.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => <ProductSkeleton key={i} />)}
+          </div>
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map(product => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.productId} product={product} />
             ))}
           </div>
         ) : (

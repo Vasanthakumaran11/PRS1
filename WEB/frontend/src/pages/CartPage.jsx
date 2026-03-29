@@ -1,64 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { mockProducts } from '../data/mockData';
+import { productAPI, cartAPI, decisionAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import { toast } from 'react-hot-toast';
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDecisionBox, setShowDecisionBox] = useState(false);
   const [decisionStage, setDecisionStage] = useState(0); 
   const [budget, setBudget] = useState('');
+  const [decisionResult, setDecisionResult] = useState(null);
+  const [priority, setPriority] = useState('low_price');
+
+  const customerId = localStorage.getItem('customerId');
+
+  const fetchCart = async () => {
+    if (!customerId) return;
+    try {
+      setIsLoading(true);
+      const response = await cartAPI.get(customerId);
+      setCartItems(response.data.items);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      toast.error("Failed to load cart.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const items = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartItems(items);
-  }, []);
+    fetchCart();
+  }, [customerId]);
 
-  const updateCart = (newItems) => {
-    setCartItems(newItems);
-    localStorage.setItem('cart', JSON.stringify(newItems));
-    window.dispatchEvent(new Event('cartUpdated'));
+  const removeItem = async (productId) => {
+    try {
+      await cartAPI.remove({ productId });
+      setCartItems(cartItems.filter(item => item.productId !== productId));
+      window.dispatchEvent(new Event('cartUpdated'));
+      toast.success(`Item removed from cart`);
+    } catch (error) {
+      toast.error("Failed to remove item.");
+    }
   };
 
-  const removeItem = (id) => {
-    const item = cartItems.find(i => i.id === id);
-    updateCart(cartItems.filter(item => item.id !== id));
-    toast.success(`${item?.name || 'Item'} removed from cart`);
-  };
+  const updateQuantity = async (productId, delta) => {
+    const item = cartItems.find(i => i.productId === productId);
+    if (!item) return;
+    const newQty = item.quantity + delta;
+    if (newQty < 1) return;
 
-  const updateQuantity = (id, delta) => {
-    const newItems = cartItems.map(item => {
-      if (item.id === id) {
-        const newQuantity = item.quantity + delta;
-        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
-      }
-      return item;
-    });
-    updateCart(newItems);
+    try {
+      await cartAPI.updateQuantity(productId, newQty);
+      setCartItems(cartItems.map(i => i.productId === productId ? { ...i, quantity: newQty } : i));
+    } catch (error) {
+      toast.error("Failed to update quantity.");
+    }
   };
 
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalPrice = cartItems.reduce((acc, item) => {
+    // We use the cheaper price for the "total" estimate or amazon as default
+    const price = Math.min(item.price_amazon, item.price_flipkart);
+    return acc + (price * item.quantity);
+  }, 0);
 
   const startDecisionFlow = () => {
     setShowDecisionBox(true);
     setDecisionStage(1);
   };
 
-  const getRecommendation = (e) => {
+  const getRecommendation = async (e) => {
     e.preventDefault();
     if(!budget) {
        toast.error("Please enter a budget to get recommendations.");
        return;
     }
-    setDecisionStage(2);
-  };
+    
+    if (cartItems.length === 0) return;
 
-  const suggestion = budget && parseInt(budget) < totalPrice 
-    ? { text: `Since your budget is $${budget}, consider waiting for the upcoming "Great Indian Festival" on Amazon for massive discounts, or explore refurbished options.`, isPositive: false }
-    : { text: `Great! The best valid platform to buy these products right now considering quick delivery and warranty is Amazon. Total price: $${totalPrice.toFixed(2)}.`, isPositive: true };
+    try {
+      setIsLoading(true);
+      // Get decision for the first item as the "priority" item for the engine
+      const response = await decisionAPI.getPurchaseDecision({
+        productId: cartItems[0].productId,
+        budget: parseFloat(budget),
+        location: "India",
+        priority: priority
+      });
+      setDecisionResult(response.data);
+      setDecisionStage(2);
+    } catch (error) {
+      toast.error("Failed to get recommendation.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const relatedProducts = mockProducts.slice(0, 4);
 
@@ -86,13 +124,6 @@ const CartPage = () => {
                 Start Shopping
               </Link>
             </div>
-            
-            <div className="w-full">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 border-t border-gray-200 dark:border-gray-700 pt-8">You might also like</h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                 {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
-              </div>
-            </div>
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-8">
@@ -100,20 +131,20 @@ const CartPage = () => {
             {/* Left: Cart Items */}
             <div className="flex-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700/80 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700/80">
               {cartItems.map(item => (
-                <div key={item.id} className="p-6 transition-colors hover:bg-white/80 dark:hover:bg-gray-800/80 flex flex-col sm:flex-row gap-6 group">
-                  <Link to={`/product/${item.id}`} className="w-full sm:w-32 h-32 flex-shrink-0 border border-gray-100 dark:border-gray-700/80 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 block">
+                <div key={item.productId} className="p-6 transition-colors hover:bg-white/80 dark:hover:bg-gray-800/80 flex flex-col sm:flex-row gap-6 group">
+                  <Link to={`/product/${item.productId}`} className="w-full sm:w-32 h-32 flex-shrink-0 border border-gray-100 dark:border-gray-700/80 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 block">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                   </Link>
                   <div className="flex-1 flex flex-col pt-1">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors line-clamp-1">
-                           <Link to={`/product/${item.id}`}>{item.name}</Link>
+                           <Link to={`/product/${item.productId}`}>{item.name}</Link>
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-0.5">{item.category}</p>
                       </div>
                       <button 
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.productId)}
                         className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition"
                         title="Remove item"
                       >
@@ -125,7 +156,7 @@ const CartPage = () => {
                       
                       <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-1">
                          <button 
-                           onClick={() => updateQuantity(item.id, -1)}
+                           onClick={() => updateQuantity(item.productId, -1)}
                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:bg-gray-800 hover:text-blue-600 transition disabled:opacity-50"
                            disabled={item.quantity <= 1}
                          >
@@ -133,7 +164,7 @@ const CartPage = () => {
                          </button>
                          <span className="w-10 text-center font-bold text-gray-900 dark:text-gray-100">{item.quantity}</span>
                          <button 
-                           onClick={() => updateQuantity(item.id, 1)}
+                           onClick={() => updateQuantity(item.productId, 1)}
                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:bg-gray-800 hover:text-blue-600 transition"
                          >
                            <Plus className="w-4 h-4" />
@@ -141,8 +172,8 @@ const CartPage = () => {
                       </div>
 
                       <div className="text-right">
-                         <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100">${(item.price * item.quantity).toFixed(2)}</span>
-                         {item.quantity > 1 && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${item.price.toFixed(2)} each</div>}
+                         <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100">${(Math.min(item.price_amazon, item.price_flipkart) * item.quantity).toFixed(2)}</span>
+                         {item.quantity > 1 && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${Math.min(item.price_amazon, item.price_flipkart).toFixed(2)} each</div>}
                       </div>
 
                     </div>
@@ -163,13 +194,12 @@ const CartPage = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Shipping Estimate</span>
-                    <span>Calculated at checkout</span>
+                    <span className="text-green-600 font-bold">FREE</span>
                   </div>
                 </div>
 
-                {/* Thick Order Total separator */}
                 <div className="mt-6 mb-8 pt-6 border-t-2 border-gray-100 dark:border-gray-700 flex justify-between items-end">
-                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Total Price</span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Est. Total</span>
                   <span className="text-3xl font-black text-gray-900 dark:text-gray-100">${totalPrice.toFixed(2)}</span>
                 </div>
 
@@ -178,55 +208,77 @@ const CartPage = () => {
                     onClick={startDecisionFlow}
                     className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-sm flex justify-center items-center"
                   >
-                    Proceed to Checkout <ArrowRight className="w-5 h-5 ml-2" />
+                    Optimize Purchase <ArrowRight className="w-5 h-5 ml-2" />
                   </button>
                 ) : (
-                  <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                  <div className="bg-blue-50 dark:bg-gray-900 border border-blue-100 dark:border-blue-900 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4">
                     {decisionStage === 1 && (
                       <form onSubmit={getRecommendation}>
-                        <h4 className="font-bold text-blue-900 mb-2">Let's optimize your purchase!</h4>
-                        <p className="text-sm text-blue-800 mb-4">Enter your budget and we'll compare platforms for you.</p>
-                        <input 
-                          type="number"
-                          value={budget}
-                          onChange={(e) => setBudget(e.target.value)}
-                          placeholder="Your available budget..."
-                          className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        />
-                        <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">
-                          Get Platform Suggestion
+                        <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-2">Smart Decision Engine</h4>
+                        <p className="text-xs text-blue-800 dark:text-blue-300 mb-4">Finding the best platform (Amazon vs Flipkart) for your primary item.</p>
+                        
+                        <div className="mb-3">
+                          <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Your Budget ($)</label>
+                          <input 
+                            type="number"
+                            value={budget}
+                            onChange={(e) => setBudget(e.target.value)}
+                            placeholder="Available budget..."
+                            className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                          />
+                        </div>
+
+                        <div className="mb-4">
+                          <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Priority</label>
+                          <select 
+                            value={priority}
+                            onChange={(e) => setPriority(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                          >
+                            <option value="low_price">Lowest Price</option>
+                            <option value="fast_delivery">Fastest Delivery</option>
+                            <option value="best_rating">Best Seller Rating</option>
+                          </select>
+                        </div>
+
+                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50">
+                           {isLoading ? 'Analyzing...' : 'Get Decision'}
                         </button>
                         <button 
                            type="button"
                            onClick={() => setShowDecisionBox(false)}
-                           className="w-full py-2 mt-2 text-blue-600 text-sm font-semibold hover:text-blue-800"
+                           className="w-full py-2 mt-2 text-blue-600 text-xs font-semibold hover:text-blue-800"
                         >
-                          Skip recommendation
+                          Cancel
                         </button>
                       </form>
                     )}
 
-                    {decisionStage === 2 && (
+                    {decisionStage === 2 && decisionResult && (
                       <div className="text-center">
-                        <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4 ${suggestion.isPositive ? 'bg-green-100 text-green-600 ring-4 ring-green-50' : 'bg-orange-100 text-orange-600 ring-4 ring-orange-50'}`}>
+                        <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4 ${decisionResult.budgetSufficient ? 'bg-green-100 text-green-600 ring-4 ring-green-50' : 'bg-orange-100 text-orange-600 ring-4 ring-orange-50'}`}>
                           <ShoppingCart className="w-7 h-7" />
                         </div>
-                        <p className={`text-sm font-semibold mb-6 leading-relaxed ${suggestion.isPositive ? 'text-green-800' : 'text-orange-800'}`}>
-                          {suggestion.text}
+                        <h5 className="font-black text-gray-900 dark:text-white text-lg mb-1">Recommended: {decisionResult.recommendedPlatform}</h5>
+                        <p className="text-2xl font-black text-blue-600 mb-3">${decisionResult.price.toFixed(2)}</p>
+                        
+                        <p className={`text-xs font-medium mb-6 leading-relaxed p-3 rounded-xl ${decisionResult.budgetSufficient ? 'bg-green-50 text-green-800 border border-green-100' : 'bg-orange-50 text-orange-800 border border-orange-100'}`}>
+                          {decisionResult.reason}
                         </p>
+
                         <button 
                           onClick={() => {
-                             toast.success('Redirecting to external platform checkout...');
+                             toast.success(`Redirecting to ${decisionResult.recommendedPlatform} checkout...`);
                           }}
-                          className={`w-full py-3 text-white rounded-lg font-bold transition shadow-sm ${suggestion.isPositive ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}`}
+                          className={`w-full py-3 text-white rounded-lg font-bold transition shadow-sm ${decisionResult.budgetSufficient ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}`}
                         >
-                          Confirm & Buy
+                          Checkout on {decisionResult.recommendedPlatform}
                         </button>
                         <button 
-                          onClick={() => {setDecisionStage(0); setShowDecisionBox(false)}}
-                          className="w-full py-2 mt-2 text-gray-500 dark:text-gray-400 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300"
+                          onClick={() => {setDecisionStage(1); setDecisionResult(null)}}
+                          className="w-full py-2 mt-2 text-gray-500 dark:text-gray-400 text-xs font-medium hover:text-gray-700 dark:hover:text-gray-300"
                         >
-                          Back to Cart
+                          Adjust Parameters
                         </button>
                       </div>
                     )}

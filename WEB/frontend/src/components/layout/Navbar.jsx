@@ -66,9 +66,19 @@ const Navbar = ({ onLogout }) => {
   const location = useLocation();
 
   useEffect(() => {
-    const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      setCartCount(cart.reduce((sum, item) => sum + item.quantity, 0));
+    const updateCartCount = async () => {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) {
+        setCartCount(0);
+        return;
+      }
+      try {
+        const response = await cartAPI.get(customerId);
+        const count = response.data.items.reduce((sum, item) => sum + item.quantity, 0);
+        setCartCount(count);
+      } catch (error) {
+        console.error("Error fetching cart count:", error);
+      }
     };
     updateCartCount();
     window.addEventListener('cartUpdated', updateCartCount);
@@ -85,6 +95,23 @@ const Navbar = ({ onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [searchResults, setSearchResults] = useState([]);
+  useEffect(() => {
+    const searchTimer = setTimeout(async () => {
+      if (searchQuery.trim().length > 1) {
+        try {
+          const response = await productAPI.search(searchQuery);
+          setSearchResults(response.data.slice(0, 5));
+        } catch (error) {
+          console.error("Search error:", error);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+    return () => clearTimeout(searchTimer);
+  }, [searchQuery]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -97,6 +124,7 @@ const Navbar = ({ onLogout }) => {
   const handleLogout = () => {
     setProfileOpen(false);
     toast.success(language === 'ta' ? 'வெற்றிகரமாக வெளியேறினீர்' : 'Logged out successfully');
+    localStorage.clear(); // Clear all user data
     if (onLogout) onLogout();
   };
 
@@ -107,11 +135,6 @@ const Navbar = ({ onLogout }) => {
     localStorage.setItem('language', lang);
     toast.success(lang === 'ta' ? 'மொழி தமிழுக்கு மாற்றப்பட்டது' : 'Language changed to English');
   };
-
-  const filteredProducts = mockProducts.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    p.id.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 5);
 
   const isActive = (path) => {
     if (path === '/' && location.pathname !== '/') return false;
@@ -171,11 +194,11 @@ const Navbar = ({ onLogout }) => {
                 {/* Search Suggestions Dropdown */}
                 {showSearchResults && searchQuery && (
                   <div className="absolute top-full mt-1 w-full bg-white dark:bg-gray-800 shadow-xl rounded-md border border-gray-100 dark:border-gray-700 py-2 z-50">
-                    {filteredProducts.length > 0 ? (
-                      filteredProducts.map(product => (
+                    {searchResults.length > 0 ? (
+                      searchResults.map(product => (
                         <Link
-                          key={product.id}
-                          to={`/product/${product.id}`}
+                          key={product.productId}
+                          to={`/product/${product.productId}`}
                           className="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 dark:hover:bg-gray-700 transition-colors border-b last:border-0 border-gray-50 dark:border-gray-700"
                           onClick={() => { setSearchQuery(''); setShowSearchResults(false); }}
                         >

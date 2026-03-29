@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { authAPI } from '../services/api';
 
 const SignupPage = ({ onLogin }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
       toast.error('Please fill in all fields');
@@ -21,12 +23,17 @@ const SignupPage = ({ onLogin }) => {
       return;
     }
     
-    // Save user to mock backend (localStorage)
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userEmail', email);
-
-    toast.success('Account created successfully! Please long in.');
-    navigate('/login');
+    try {
+      setIsLoading(true);
+      await authAPI.register({ name, email, password });
+      toast.success('Account created successfully! Please log in.');
+      navigate('/login');
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail || 'Registration failed. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -97,9 +104,10 @@ const SignupPage = ({ onLogin }) => {
 
            <button 
              type="submit" 
-             className="w-full py-3 px-4 bg-[#004b36] text-white font-bold rounded-lg shadow-md hover:bg-[#003828] transition duration-200 mt-6"
+             disabled={isLoading}
+             className="w-full py-3 px-4 bg-[#004b36] text-white font-bold rounded-lg shadow-md hover:bg-[#003828] transition duration-200 mt-6 disabled:opacity-50"
            >
-             Register
+             {isLoading ? 'Registering...' : 'Register'}
            </button>
         </form>
 

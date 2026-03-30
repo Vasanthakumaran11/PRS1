@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
@@ -15,15 +15,19 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 
 function App() {
-  // Detect page refresh and clear everything to start fresh
-  const isReload = performance.getEntriesByType('navigation')[0]?.type === 'reload';
-  if (isReload) {
-    localStorage.clear();
-  }
-
   const [isAuthenticated, setIsAuthenticated] = React.useState(
     localStorage.getItem('isAuthenticated') === 'true'
   );
+
+  // Initialize authentication state on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (token && isAuth) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const handleLogin = () => {
     localStorage.setItem('isAuthenticated', 'true');
@@ -32,6 +36,9 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('token');
+    localStorage.removeItem('customerId');
+    localStorage.removeItem('userName');
     setIsAuthenticated(false);
   };
 

@@ -1,26 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Calendar, Settings, Edit3, Shield, Package, MapPin } from 'lucide-react';
 import { productAPI, authAPI, reviewAPI } from '../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        // Check if user is logged in
+        const isAuthenticated = localStorage.getItem('isAuthenticated');
+        const token = localStorage.getItem('token');
+        
+        if (!isAuthenticated || !token) {
+          navigate('/login');
+          return;
+        }
+        
         setIsLoading(true);
         const response = await authAPI.getMe();
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching profile:", error);
+        // If token is invalid, redirect to login
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('isAuthenticated');
+          navigate('/login');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   if (isLoading) {
     return <div className="pt-24 text-center min-h-screen">Loading Profile...</div>;

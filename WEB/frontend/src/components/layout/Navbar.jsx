@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import HelpDropdown from './HelpDropdown';
 import GuideModal from './GuideModal';
 import { mockProducts } from '../../data/mockData';
+import { cartAPI, authAPI } from '../../services/api';
 
 const Navbar = ({ onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,10 +13,32 @@ const Navbar = ({ onLogout }) => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [userName, setUserName] = useState(localStorage.getItem('userName') || 'User');
   
   // Theme & Language
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
+
+  // Fetch user name from API on component mount
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const response = await authAPI.getMe();
+        const name = response.data.name;
+        setUserName(name);
+        localStorage.setItem('userName', name);
+      } catch (error) {
+        console.error("Error fetching user name:", error);
+        // Fallback to localStorage value if API fails
+        setUserName(localStorage.getItem('userName') || 'User');
+      }
+    };
+    
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      fetchUserName();
+    }
+  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -60,7 +83,6 @@ const Navbar = ({ onLogout }) => {
   const isLoggedIn = true; // Guaranteed true since Navbar only renders when authenticated via App.jsx
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
-  const userName = localStorage.getItem('userName') || 'User';
   
   const navigate = useNavigate();
   const location = useLocation();

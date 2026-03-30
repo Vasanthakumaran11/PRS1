@@ -26,14 +26,23 @@ const SignupPage = ({ onLogin }) => {
     
     try {
       setIsLoading(true);
-      await authAPI.register({ 
+      const response = await authAPI.register({ 
         name, 
         email, 
         password,
         location: location || "Unknown" 
       });
-      toast.success('Account created successfully! Please log in.');
-      navigate('/login');
+      
+      // Auto-login after registration
+      const { access_token, customerId } = response.data;
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('customerId', customerId);
+      localStorage.setItem('userName', name);
+      localStorage.setItem('isAuthenticated', 'true');
+      
+      toast.success('Account created successfully!');
+      if (onLogin) onLogin();
+      navigate('/');
     } catch (error) {
       if (error.response?.status === 422) {
         // Detailed Pydantic validation errors

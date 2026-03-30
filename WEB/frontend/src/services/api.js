@@ -19,9 +19,9 @@ api.interceptors.request.use(
 );
 
 export const authAPI = {
-  register: (data) => api.post('/register', data),
-  login: (data) => api.post('/login', data),
-  getMe: () => api.get('/me'),
+  register: (data) => api.post('/auth/register', data),
+  login: (data) => api.post('/auth/login', data),
+  getMe: () => api.get('/auth/me'),
 };
 
 export const productAPI = {

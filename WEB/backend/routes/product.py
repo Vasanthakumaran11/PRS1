@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from database import products_col
 from typing import List, Optional
 
+
 router = APIRouter(tags=["Products"])
 
 

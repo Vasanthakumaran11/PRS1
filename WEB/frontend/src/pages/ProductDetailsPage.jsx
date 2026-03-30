@@ -143,7 +143,7 @@ const ProductDetailsPage = () => {
               >
                 <img src={product.image} className="w-full h-full object-cover" />
               </button>
-              {product.thumbnails.map((thumb, idx) => (
+              {product.thumbnails && product.thumbnails.length > 0 && product.thumbnails.map((thumb, idx) => (
                 <button 
                   key={idx}
                   onClick={() => setActiveImage(thumb)}
@@ -163,20 +163,20 @@ const ProductDetailsPage = () => {
             <div className="flex items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-6">
               <div className="flex text-yellow-400 mr-2">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'fill-current' : 'text-gray-300'}`} />
+                  <Star key={i} className={`w-5 h-5 ${i < Math.floor(product.rating || 0) ? 'fill-current' : 'text-gray-300'}`} />
                 ))}
               </div>
-              <span className="text-lg font-medium text-blue-600">{product.rating}</span>
+              <span className="text-lg font-medium text-blue-600">{product.rating || '0'}</span>
               <span className="mx-2 text-gray-300">|</span>
-              <a href="#reviews" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 cursor-pointer underline underline-offset-4">{product.reviewsCount?.toLocaleString()} ratings</a>
+              <a href="#reviews" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 cursor-pointer underline underline-offset-4">{(product.reviewsCount || product.reviewCount || 0)?.toLocaleString()} ratings</a>
             </div>
 
             <div className="text-5xl font-black text-gray-900 dark:text-gray-100 mb-8 inline-flex items-baseline gap-2 tabular-nums tracking-tight">
-              ${(product.price_amazon || product.price_flipkart || 0).toFixed(2)}
+              ₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0)}
               <span className="text-lg text-green-600 font-medium tracking-normal ml-2">In Stock</span>
             </div>
 
-            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-8">{product.description}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-8">{product.description || 'No description available'}</p>
             
             <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-8">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Platform Decision Suggestion</h3>
@@ -229,10 +229,10 @@ const ProductDetailsPage = () => {
               <div className="flex flex-col items-center mb-10 bg-gray-50 dark:bg-gray-900 w-full py-10 rounded-3xl border border-gray-100 dark:border-gray-700/80 shadow-inner">
                 <div className="flex items-center mb-2">
                   <Star className="w-12 h-12 fill-current text-yellow-400 mr-4 drop-shadow-sm" />
-                  <span className="text-6xl font-black text-gray-900 dark:text-gray-100 tracking-tighter">{product.rating}</span>
+                  <span className="text-6xl font-black text-gray-900 dark:text-gray-100 tracking-tighter">{product.rating || '0'}</span>
                 </div>
                 <p className="text-gray-500 dark:text-gray-400 font-bold mb-1">out of 5.0</p>
-                <p className="text-sm font-semibold text-gray-400 dark:text-gray-500 mt-2">{product.reviewsCount?.toLocaleString()} global ratings</p>
+                <p className="text-sm font-semibold text-gray-400 dark:text-gray-500 mt-2">{(product.reviewsCount || product.reviewCount || 0)?.toLocaleString()} global ratings</p>
                 
                 {/* Visual Histogram */}
                 <div className="w-full max-w-sm mt-8 space-y-3.5 px-6">
@@ -392,11 +392,11 @@ const ProductDetailsPage = () => {
                      <div className="flex items-center justify-between mb-5">
                        <div className="flex items-center">
                          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 font-black text-xl mr-5 object-cover shadow-sm border-2 border-white dark:border-gray-800 relative z-0">
-                           {(review.userId || review.customerId || 'U')?.charAt(0).toUpperCase()}
+                           {(review.customerName || 'U')?.charAt(0).toUpperCase()}
                            <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-4 h-4 border-2 border-white dark:border-gray-800 z-10"></div>
                          </div>
                          <div>
-                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{review.userId || review.customerId || 'Anonymous User'}</h4>
+                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{review.customerName || 'Anonymous User'}</h4>
                            <p className="text-sm font-semibold text-gray-400 mt-1">Reviewed on {new Date(review.timestamp || review.createdAt).toLocaleDateString()}</p>
                          </div>
                        </div>
@@ -424,7 +424,7 @@ const ProductDetailsPage = () => {
                        )}
                      </div>
 
-                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-base lg:text-lg">{review.text}</p>
+                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-base lg:text-lg">{review.review || review.text || 'No text provided'}</p>
                      
                      <div className="flex items-center gap-5 pt-2">
                         <button className="flex items-center text-sm text-gray-600 dark:text-gray-400 font-bold hover:text-blue-600 dark:hover:text-blue-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0 shadow-sm">
@@ -467,7 +467,7 @@ const ProductDetailsPage = () => {
                       ))}
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">{rp.reviewsCount}</span>
                     </div>
-                   <span className="font-bold text-gray-900 dark:text-gray-100">${rp.price.toFixed(2)}</span>
+                   <span className="font-bold text-gray-900 dark:text-gray-100">₹{Math.round(rp.price || 0)}</span>
                 </Link>
               ))}
             </div>
@@ -487,13 +487,13 @@ const ProductDetailsPage = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'fill-current' : 'text-gray-300'}`} />
                   ))}
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 font-medium">{product.reviewsCount}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 font-medium">{product.reviewsCount || product.reviewCount || 0}</span>
               </div>
             </div>
           </div>
           
           <div className="hidden sm:flex flex-col items-end mr-4">
-             <span className="text-2xl font-black text-gray-900 dark:text-gray-100 leading-none">${(product.price_amazon || product.price_flipkart || 0).toFixed(2)}</span>
+             <span className="text-2xl font-black text-gray-900 dark:text-gray-100 leading-none">₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0)}</span>
              <span className="text-xs text-green-600 font-bold uppercase mt-1">In Stock</span>
           </div>
 

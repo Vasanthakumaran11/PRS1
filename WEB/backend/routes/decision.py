@@ -2,15 +2,15 @@
 routes/decision.py - Purchase Decision Engine (Core Feature).
 
 POST /purchase-decision
-  - Fetches product from DB
-  - Compares price_amazon vs price_flipkart
+  - Fetches product from DB (with enriched platform data)
+  - Compares price, delivery, and rating across platforms
   - Checks user budget
   - Applies priority logic (low_price / fast_delivery / best_rating)
   - Returns the best platform recommendation with a clear reason
 
-Simulated platform data:
-  • Amazon:   slightly faster delivery, fixed delivery rating advantage
-  • Flipkart: slightly better community rating advantage
+Platform data now includes:
+  • Amazon:   dynamic pricing, 1-2 day delivery, variable rating
+  • Flipkart: dynamic pricing, 2-3 day delivery, variable rating
 """
 from datetime import datetime
 
@@ -23,6 +23,34 @@ from routes.auth import get_current_customer
 router = APIRouter(tags=["Decision Engine"])
 
 import uuid
+
+
+def get_platform_data(product: dict, platform: str) -> dict:
+    """
+    Extract platform data, supporting both old and new schema.
+    
+    New schema: product["platforms"][platform]
+    Old schema: product["price_{platform}"]
+    """
+    # Try new schema first
+    if "platforms" in product and platform in product["platforms"]:
+        return product["platforms"][platform]
+    
+    # Fallback to old schema for backward compatibility
+    old_price_key = f"price_{platform}"
+    if old_price_key in product:
+        return {
+            "price": product[old_price_key],
+            "delivery": 1 if platform == "amazon" else 2,
+            "rating": product.get("avgRating", 3.0),
+        }
+    
+    # Return default if not found
+    return {
+        "price": product.get("base_price", 0.0),
+        "delivery": 2,
+        "rating": product.get("rating", 3.0),
+    }
 
 
 @router.post("/purchase-decision", response_model=DecisionResponse)
@@ -40,9 +68,17 @@ def purchase_decision(
             detail=f"Product '{data.productId}' not found."
         )
 
-    amazon_price = product.get("price_amazon", 0.0)
-    flipkart_price = product.get("price_flipkart", 0.0)
-    avg_rating = product.get("avgRating", 3.0)
+    # Extract platform data (supports both old and new schema)
+    amazon_data = get_platform_data(product, "amazon")
+    flipkart_data = get_platform_data(product, "flipkart")
+    
+    amazon_price = amazon_data["price"]
+    flipkart_price = flipkart_data["price"]
+    amazon_delivery = amazon_data.get("delivery", 1)
+    flipkart_delivery = flipkart_data.get("delivery", 2)
+    amazon_rating = amazon_data.get("rating", 3.0)
+    flipkart_rating = flipkart_data.get("rating", 3.0)
+    
     budget = data.budget
     priority = data.priority.value
 
@@ -93,54 +129,105 @@ def purchase_decision(
             )
 
     elif priority == "fast_delivery":
-        # Amazon is simulated as the faster delivery platform
-        winner = "Amazon"
-        winner_price = amazon_price
-        loser = "Flipkart"
-        loser_price = flipkart_price
-        if amazon_affordable:
-            reason = (
-                f"Amazon provides the fastest delivery for this product at ₹{amazon_price:.2f}. "
-                f"Expected delivery: 1-2 business days."
-            )
-        else:
-            reason = (
-                f"Amazon has faster delivery but ₹{amazon_price:.2f} exceeds your budget of ₹{budget:.2f}. "
-                f"Consider Flipkart at ₹{flipkart_price:.2f} as a budget-friendly alternative (3-5 days delivery)."
-            )
+        # Compare delivery times and pick the faster option
+        if amazon_delivery < flipkart_delivery:
+            winner = "Amazon"
+            winner_price = amazon_price
+            loser = "Flipkart"
+            loser_price = flipkart_price
+            if amazon_affordable:
+                reason = (
+                    f"Amazon provides faster delivery ({amazon_delivery} days) at ₹{amazon_price:.2f}. "
+                    f"Flipkart takes {flipkart_delivery} days (₹{flipkart_price:.2f})."
+                )
+            else:
+                reason = (
+                    f"Amazon has faster delivery ({amazon_delivery} days) but ₹{amazon_price:.2f} exceeds your budget. "
+                    f"Best budget option: Flipkart at ₹{flipkart_price:.2f} ({flipkart_delivery} days)."
+                )
+                if flipkart_affordable:
+                    winner = "Flipkart"
+                    winner_price = flipkart_price
+                    loser = "Amazon"
+                    loser_price = amazon_price
+        elif flipkart_delivery < amazon_delivery:
+            winner = "Flipkart"
+            winner_price = flipkart_price
+            loser = "Amazon"
+            loser_price = amazon_price
             if flipkart_affordable:
+                reason = (
+                    f"Flipkart provides faster delivery ({flipkart_delivery} days) at ₹{flipkart_price:.2f}. "
+                    f"Amazon takes {amazon_delivery} days (₹{amazon_price:.2f})."
+                )
+            else:
+                reason = (
+                    f"Flipkart has faster delivery ({flipkart_delivery} days) but ₹{flipkart_price:.2f} exceeds your budget. "
+                    f"Best budget option: Amazon at ₹{amazon_price:.2f} ({amazon_delivery} days)."
+                )
+                if amazon_affordable:
+                    winner = "Amazon"
+                    winner_price = amazon_price
+                    loser = "Flipkart"
+                    loser_price = flipkart_price
+        else:
+            # Same delivery time, pick cheaper option
+            if amazon_price <= flipkart_price:
+                winner = "Amazon"
+                winner_price = amazon_price
+                loser = "Flipkart"
+                loser_price = flipkart_price
+            else:
                 winner = "Flipkart"
                 winner_price = flipkart_price
                 loser = "Amazon"
                 loser_price = amazon_price
+            reason = (
+                f"Both platforms deliver in {amazon_delivery} days. "
+                f"Choosing {winner} as the cheaper option at ₹{winner_price:.2f}."
+            )
 
     elif priority == "best_rating":
-        # Flipkart is simulated to have a slight community rating advantage (+0.1)
-        flipkart_effective_rating = round(avg_rating + 0.1, 2)
-        amazon_effective_rating = avg_rating
-
-        if flipkart_effective_rating > amazon_effective_rating:
+        # Compare platform ratings
+        if flipkart_rating > amazon_rating:
             winner = "Flipkart"
             winner_price = flipkart_price
             loser = "Amazon"
             loser_price = amazon_price
             reason = (
-                f"Flipkart has the highest community rating ({flipkart_effective_rating}/5) for this product "
-                f"at ₹{flipkart_price:.2f}. Customers consistently rate it higher on Flipkart."
+                f"Flipkart has the highest rating ({flipkart_rating}/5) for this product "
+                f"at ₹{flipkart_price:.2f} with {flipkart_delivery}-day delivery. "
+                f"Amazon rating: {amazon_rating}/5 at ₹{amazon_price:.2f}."
             )
-        else:
+        elif amazon_rating > flipkart_rating:
             winner = "Amazon"
             winner_price = amazon_price
             loser = "Flipkart"
             loser_price = flipkart_price
             reason = (
-                f"Amazon has a strong rating ({amazon_effective_rating}/5) for this product "
-                f"at ₹{amazon_price:.2f}."
+                f"Amazon has the highest rating ({amazon_rating}/5) for this product "
+                f"at ₹{amazon_price:.2f} with {amazon_delivery}-day delivery. "
+                f"Flipkart rating: {flipkart_rating}/5 at ₹{flipkart_price:.2f}."
+            )
+        else:
+            # Ratings equal, pick cheaper
+            if amazon_price <= flipkart_price:
+                winner = "Amazon"
+                winner_price = amazon_price
+                loser = "Flipkart"
+                loser_price = flipkart_price
+            else:
+                winner = "Flipkart"
+                winner_price = flipkart_price
+                loser = "Amazon"
+                loser_price = amazon_price
+            reason = (
+                f"Both platforms have equal ratings ({amazon_rating}/5). "
+                f"Choosing {winner} as the better value at ₹{winner_price:.2f}."
             )
 
-        if not (winner == "Amazon" and amazon_affordable) and not (winner == "Flipkart" and flipkart_affordable):
-            if not budget_sufficient:
-                reason += f" However, your budget (₹{budget:.2f}) is insufficient. Consider increasing it."
+        if not budget_sufficient:
+            reason += f" However, your budget (₹{budget:.2f}) is insufficient for both options."
 
     else:
         # Fallback: cheapest
@@ -158,3 +245,4 @@ def purchase_decision(
         alternativePlatform=loser,
         alternativePrice=loser_price,
     )
+

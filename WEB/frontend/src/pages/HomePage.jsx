@@ -1,12 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, Box, ShieldCheck, Truck, Clock, Package } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { categories, mockProducts } from '../data/mockData';
+import { productAPI } from '../services/api';
 import '../index.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await productAPI.getAll();
+        setProducts(response.data || []);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        // Fallback to mockProducts if API fails
+        setProducts(mockProducts);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -56,39 +77,51 @@ const HomePage = () => {
            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-lg mb-8">Browse products through thoughtfully organized collections tailored to your lifestyle.</p>
         </div>
         
-        {categories.map(category => (
-          <section key={category.id} className="relative">
-            <div className="flex justify-between items-end mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{category.name}</h3>
+        {categories.map(category => {
+          const categoryProducts = products.filter(p => 
+            p.category && p.category.toLowerCase() === (category.id || category.name).toLowerCase()
+          );
+          
+          return (
+            <section key={category.id} className="relative">
+              <div className="flex justify-between items-end mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{category.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{categoryProducts.length} products available</p>
+                </div>
+                <Link 
+                  to={`/products?category=${category.id}`} 
+                  className="hidden sm:flex items-center text-blue-600 font-bold hover:text-blue-800 transition-colors"
+                 >
+                  View Collection <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
               </div>
-              <Link 
-                to={`/category/${category.id}`} 
-                className="hidden sm:flex items-center text-blue-600 font-bold hover:text-blue-800 transition-colors"
-               >
-                View Collection <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-            </div>
-            
-            <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 no-scrollbar snap-x snap-mandatory">
-              {mockProducts
-                .filter(p => p.category === category.id)
-                .slice(0, 4) // Show up to 4 in row
-                .map(product => (
-                  <div key={product.id} className="min-w-[280px] sm:min-w-0 snap-center">
-                    <ProductCard product={product} />
+              
+              {categoryProducts.length > 0 ? (
+                <>
+                  <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 no-scrollbar snap-x snap-mandatory">
+                    {categoryProducts.slice(0, 4).map(product => (
+                      <div key={product.productId || product.id} className="min-w-[280px] sm:min-w-0 snap-center">
+                        <ProductCard product={product} />
+                      </div>
+                    ))}
                   </div>
-              ))}
-            </div>
-            
-            <Link 
-              to={`/category/${category.id}`} 
-              className="sm:hidden block text-center mt-6 text-blue-700 font-bold bg-blue-50 w-full py-3 rounded-xl transition"
-            >
-              View Full Collection
-            </Link>
-          </section>
-        ))}
+                  
+                  <Link 
+                    to={`/products?category=${category.id}`} 
+                    className="sm:hidden block text-center mt-6 text-blue-700 font-bold bg-blue-50 dark:bg-blue-900 dark:text-blue-300 w-full py-3 rounded-xl transition"
+                  >
+                    View Full Collection
+                  </Link>
+                </>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+                  <p className="text-gray-500 dark:text-gray-400">No products available in this category yet.</p>
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
 
       {/* Apple-Style Footer From Reference Image */}

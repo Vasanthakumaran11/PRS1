@@ -1,6 +1,7 @@
 """
 routes/product.py - Product listing and search routes.
 
+GET /load-products                  - Load products from Fake Store API
 GET /products                       - All products
 GET /products/top-rated             - Top rated products
 GET /products/category/{category}   - Products by category
@@ -9,6 +10,7 @@ GET /search                         - Search by query string
 """
 from fastapi import APIRouter, HTTPException, Query, status
 from database import products_col
+from services.product_service import load_products_to_db
 from typing import List, Optional
 
 
@@ -19,6 +21,40 @@ def serialize_product(doc: dict) -> dict:
     """Convert MongoDB document to clean JSON-serializable dict."""
     doc.pop("_id", None)
     return doc
+
+
+# ---------------------------------------------------------------------------
+# GET /load-products
+# ---------------------------------------------------------------------------
+@router.get("/load-products")
+def load_products():
+    """
+    Fetch products from Fake Store API and store in MongoDB.
+    
+    This endpoint:
+    1. Fetches all products from Fake Store API
+    2. Enriches them with platform comparison data
+    3. Stores/updates in MongoDB
+    
+    Returns:
+        Operation result with counts of inserted/updated products
+    """
+    result = load_products_to_db()
+    if result["success"]:
+        return {
+            "status": "success",
+            "message": result["message"],
+            "data": {
+                "productsLoaded": result["productsLoaded"],
+                "productsInserted": result["productsInserted"],
+                "productsUpdated": result["productsUpdated"],
+            }
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=result.get("message", "Failed to load products")
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +74,7 @@ def get_top_rated(limit: int = Query(default=10, ge=1, le=50)):
     products = list(
         products_col()
         .find({})
-        .sort("avgRating", -1)
+        .sort("rating", -1)
         .limit(limit)
     )
     return [serialize_product(p) for p in products]
@@ -86,3 +122,4 @@ def get_product(productId: str):
             detail=f"Product '{productId}' not found."
         )
     return serialize_product(product)
+

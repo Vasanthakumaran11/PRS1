@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { productAPI, cartAPI, decisionAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import { mockProducts } from '../data/mockData';
 import { toast } from 'react-hot-toast';
 
 const CartPage = () => {

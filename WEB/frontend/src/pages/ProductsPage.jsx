@@ -168,7 +168,7 @@ const ProductsPage = () => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-300">
                 {displayedProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.productId} product={product} />
                 ))}
               </div>
               

@@ -172,7 +172,7 @@ const ProductDetailsPage = () => {
             </div>
 
             <div className="text-5xl font-black text-gray-900 dark:text-gray-100 mb-8 inline-flex items-baseline gap-2 tabular-nums tracking-tight">
-              ${product.price.toFixed(2)}
+              ${(product.price_amazon || product.price_flipkart || 0).toFixed(2)}
               <span className="text-lg text-green-600 font-medium tracking-normal ml-2">In Stock</span>
             </div>
 
@@ -253,7 +253,7 @@ const ProductDetailsPage = () => {
                   onClick={() => setReviewViewMode('write')}
                   className="px-8 py-4 bg-[#004b36] text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white transition-all shadow-md text-lg"
                 >
-                  Write Honest Review
+                  Write  Review
                 </button>
                 <button 
                   onClick={() => setReviewViewMode('read')}
@@ -346,7 +346,7 @@ const ProductDetailsPage = () => {
                       Cancel
                     </button>
                     <button type="submit" className="flex-1 py-4 bg-[#004b36] text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white transition-all shadow-md text-lg flex justify-center items-center">
-                      Submit Honest Review <CheckCircle className="ml-2 w-6 h-6" />
+                      Submit Review <CheckCircle className="ml-2 w-6 h-6" />
                     </button>
                   </div>
                </form>
@@ -387,17 +387,17 @@ const ProductDetailsPage = () => {
                </div>
 
                <div className="space-y-6">
-                 {filteredReviews.length > 0 ? filteredReviews.map(review => (
-                   <div key={review.id} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700/80 p-8 rounded-3xl block w-full transition-shadow hover:shadow-md">
+                 {filteredReviews.length > 0 ? filteredReviews.map((review, idx) => (
+                   <div key={review.id || review.customerId || `review-${idx}`} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700/80 p-8 rounded-3xl block w-full transition-shadow hover:shadow-md">
                      <div className="flex items-center justify-between mb-5">
                        <div className="flex items-center">
                          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 font-black text-xl mr-5 object-cover shadow-sm border-2 border-white dark:border-gray-800 relative z-0">
-                           {review.userId.charAt(0)}
+                           {(review.userId || review.customerId || 'U')?.charAt(0).toUpperCase()}
                            <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-4 h-4 border-2 border-white dark:border-gray-800 z-10"></div>
                          </div>
                          <div>
-                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{review.userId}</h4>
-                           <p className="text-sm font-semibold text-gray-400 mt-1">Reviewed on {new Date(review.timestamp).toLocaleDateString()}</p>
+                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{review.userId || review.customerId || 'Anonymous User'}</h4>
+                           <p className="text-sm font-semibold text-gray-400 mt-1">Reviewed on {new Date(review.timestamp || review.createdAt).toLocaleDateString()}</p>
                          </div>
                        </div>
                      </div>
@@ -493,7 +493,7 @@ const ProductDetailsPage = () => {
           </div>
           
           <div className="hidden sm:flex flex-col items-end mr-4">
-             <span className="text-2xl font-black text-gray-900 dark:text-gray-100 leading-none">${product.price.toFixed(2)}</span>
+             <span className="text-2xl font-black text-gray-900 dark:text-gray-100 leading-none">${(product.price_amazon || product.price_flipkart || 0).toFixed(2)}</span>
              <span className="text-xs text-green-600 font-bold uppercase mt-1">In Stock</span>
           </div>
 

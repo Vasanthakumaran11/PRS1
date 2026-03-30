@@ -1,9 +1,9 @@
 """
 routes/auth.py - Authentication routes with JWT.
 
-POST /register  - Create a new customer account
-POST /login     - Authenticate and return JWT token
-GET  /me        - Get current authenticated user info
+POST /register       - Create a new customer account
+POST /login          - Authenticate and return JWT token
+GET  /me             - Get current authenticated user info
 """
 import uuid
 from datetime import datetime, timedelta

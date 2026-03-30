@@ -1,0 +1,226 @@
+# .gitignore - Prevent sensitive files from being committed
+
+# === ENVIRONMENT VARIABLES & SECRETS ===
+.env
+.env.local
+.env.*.local
+.env.production.local
+.env.development.local
+.env.test.local
+*.env
+
+# === CREDENTIALS & API KEYS ===
+credentials.json
+secrets.json
+auth.json
+*.pem
+*.key
+*.crt
+
+# === PYTHON ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# === PYTHON VIRTUAL ENVIRONMENTS ===
+venv/
+ENV/
+env/
+venv_*
+.venv
+pipenv_install.log
+
+# === NODE.JS & NPM ===
+node_modules/
+npm-debug.log
+npm-debug.log.*
+yarn-error.log
+yarn-debug.log*
+.pnpm-debug.log*
+*.tgz
+
+# === FRONTEND BUILD ===
+dist/
+.dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+.nuxt/
+dist/
+
+# === VITE ===
+.vite/
+
+# === IDE & EDITOR FILES ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-workspace
+*.sublime-project
+.project
+.pydevproject
+.settings/
+*.mem
+*.iml
+.classpath
+.c9/
+
+# === TESTING ===
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+
+# === DEVELOPMENT ===
+.netrwhist
+*.orig
+.cache/
+
+# === DATABASE ===
+*.sqlite
+*.sqlite3
+*.db
+*.dmg
+*.iso
+*.jar
+
+# === LOGS ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# === TEMPORARY FILES ===
+*.tmp
+*.temp
+*.bak
+*.swp
+~*
+.~*
+*.lock
+package-lock.json
+yarn.lock
+
+# === OS SPECIFIC ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# === IDE CACHE ===
+.cache/
+.eslintcache
+.node_repl_history
+*.tsbuildinfo
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# === DOCKER ===
+docker-compose.override.yml
+
+# === MISC ===
+.turbo/
+.exec/
+.run/
+.wait-on
+dist-ssr/
+*.local
+
+# === FRONTEND SPECIFIC ===
+WEB/frontend/node_modules/
+WEB/frontend/dist/
+WEB/frontend/.env.local
+WEB/frontend/.env.*.local
+WEB/frontend/coverage/
+
+# === BACKEND SPECIFIC ===
+WEB/backend/__pycache__/
+WEB/backend/.pytest_cache/
+WEB/backend/venv/
+WEB/backend/.env
+WEB/backend/*.log
+WEB/backend/instance/
+WEB/backend/.webassets-cache
+
+# === PROJECT SPECIFIC ===
+# Don't commit user-specific config
+.vscode/launch.json
+.vscode/settings.json
+
+# Temporary uploads
+uploads/
+temp/
+tmp/
+
+# Database backups
+*.backup
+*.bak
+backup/
+
+# === GOOGLE OAUTH SECRETS ===
+google-*.json
+client_secret*.json
+
+# === EMAIL SERVICE LOGS ===
+email_logs/
+mail_logs/
+
+# === SENSITIVE DOCUMENTATION ===
+SECRETS.md
+CREDENTIALS.md
+PASSWORDS.md
+API_KEYS.md
+
+# === PYCACHE & PIP ===
+pip-log.txt
+pip-delete-this-directory.txt
+.webassets-cache
+instance/
+.env.bak
+
+# === RUST (if used) ===
+target/
+Cargo.lock
+
+# === MISC PATTERNS ===
+*.swp
+*.swo
+*~
+.#*
+!

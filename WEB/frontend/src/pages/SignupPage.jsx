@@ -138,21 +138,6 @@ const SignupPage = ({ onLogin }) => {
            </button>
         </form>
 
-        <div className="mt-8 flex items-center justify-between">
-           <hr className="w-full border-gray-200 dark:border-gray-700" />
-           <span className="px-3 text-sm text-gray-400 dark:text-gray-500 dark:text-gray-400 whitespace-nowrap">or register with</span>
-           <hr className="w-full border-gray-200 dark:border-gray-700" />
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-4">
-           <button className="flex justify-center items-center py-2.5 px-4 border border-red-500 text-red-500 font-bold rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition">
-             <span className="mr-2 font-black">G+</span> google
-           </button>
-           <button className="flex justify-center items-center py-2.5 px-4 border border-[#3b5998] text-[#3b5998] dark:text-[#5c7bc0] dark:border-[#5c7bc0] font-bold rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition">
-             <span className="mr-2 font-black text-lg">f</span> facebook
-           </button>
-        </div>
-
       </div>
     </div>
   );

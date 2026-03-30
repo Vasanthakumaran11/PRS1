@@ -1,0 +1,74 @@
+# .gitignore for Backend - Python Project
+
+# === ENVIRONMENT ===
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# === PYTHON CACHE & PIP ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === VIRTUAL ENVIRONMENT ===
+venv/
+ENV/
+env/
+.venv
+venv_*
+
+# === DATABASE ===
+*.sqlite
+*.sqlite3
+*.db
+instance/
+
+# === LOGS ===
+*.log
+logs/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-workspace
+*.sublime-project
+
+# === TESTING ===
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# === PYCACHE ===
+.cache/
+
+# === CREDENTIALS & SECRETS ===
+credentials.json
+secrets.json
+auth.json
+*.pem
+*.key
+*.crt
+google-*.json
+client_secret*.json
+
+# === MISC ===
+.coverage
+.hypothesis/
+.webassets-cache
+instance/
+.env.bak

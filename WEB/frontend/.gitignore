@@ -1,0 +1,79 @@
+# .gitignore for Frontend - React/Node.js Project
+
+# === DEPENDENCIES ===
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# === ENVIRONMENT ===
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# === BUILD OUTPUT ===
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+.next/
+out/
+
+# === CACHE & LOGS ===
+npm-debug.log
+npm-debug.log.*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.sublime-workspace
+.sublime-project
+.classPath
+.c9/
+
+# === OS SPECIFIC ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# === TESTING ===
+coverage/
+.coverage
+
+# === VITE ===
+.vite/
+
+# === MISC ===
+.turbo/
+*.local
+.cache/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# === CREDENTIALS & SECRETS ===
+.env
+credentials.json
+google-*.json
+client_secret*.json
+
+# === COVERAGE ===
+lcov.info
+.nyc_output/

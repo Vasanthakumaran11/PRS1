@@ -187,7 +187,11 @@ const Navbar = ({ onLogout }) => {
           <div className="flex items-center flex-1 gap-4 lg:gap-8">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 transition-colors">
-              <Package className="w-8 h-8 text-[#004b36] dark:text-[#8cc63f]" strokeWidth={2.5} />
+              <img 
+                src="/Designer (1).png" 
+                alt="Logo" 
+                className="w-10 h-10 object-contain" 
+              />
               <div className="flex flex-col">
                 <span className="font-bold text-2xl leading-none uppercase tracking-tight text-[#004b36] dark:text-[#fbfefd]">Revu</span>
                 <span className="text-[10px] font-bold tracking-widest text-[#004b36] dark:text-[#fbfefd]">.com.au</span>

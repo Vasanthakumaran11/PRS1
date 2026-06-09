@@ -18,6 +18,7 @@ const ProductDetailsPage = () => {
   const [showDetailedReview, setShowDetailedReview] = useState(false);
   const [reviewText, setReviewText] = useState('');
   const [reviewFilter, setReviewFilter] = useState('All');
+  const [selectedSize, setSelectedSize] = useState('');
   
   useEffect(() => {
     const fetchProductData = async () => {
@@ -172,12 +173,40 @@ const ProductDetailsPage = () => {
             </div>
 
             <div className="text-5xl font-black text-gray-900 dark:text-gray-100 mb-8 inline-flex items-baseline gap-2 tabular-nums tracking-tight">
-              ₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0)}
-              <span className="text-lg text-green-600 font-medium tracking-normal ml-2">In Stock</span>
+              ₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0).toLocaleString('en-IN')}
+              {product.mrp && Math.round(product.mrp) > Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0) && (
+                <span className="text-2xl text-gray-400 dark:text-gray-500 line-through ml-3 font-normal">
+                  ₹{Math.round(product.mrp).toLocaleString('en-IN')}
+                </span>
+              )}
+              <span className="text-lg text-green-600 font-bold uppercase tracking-normal ml-3">
+                {product.availability || 'In Stock'}
+              </span>
             </div>
 
-            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-8">{product.description || 'No description available'}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6">{product.description || 'No description available'}</p>
             
+            {product.category === 'fashion' && product.available_sizes && (
+              <div className="mb-6 animate-in fade-in duration-300">
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm uppercase tracking-wider">Select Size</h3>
+                <div className="flex gap-2.5">
+                  {product.available_sizes.split(',').map((size) => {
+                    const s = size.strip ? size.strip() : size.trim();
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setSelectedSize(s)}
+                        className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold transition-all ${selectedSize === s ? 'border-blue-600 bg-blue-50 text-blue-600 dark:border-blue-500 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900'}`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-8">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Platform Decision Suggestion</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Add this item to your cart to get the best platform and price suggestions tailored to your budget!</p>
@@ -194,19 +223,31 @@ const ProductDetailsPage = () => {
             <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden text-sm">
               <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                 <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">Brand</div>
-                <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">PremiumMaker</div>
+                <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">{product.brand || 'PremiumMaker'}</div>
               </div>
               <div className="flex border-b border-gray-200 dark:border-gray-700">
                 <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Model Name</div>
                 <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">{product.name}</div>
               </div>
               <div className="flex border-b border-gray-200 dark:border-gray-700">
-                <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Color</div>
-                <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">Matte Black</div>
+                <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Source Store</div>
+                <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">
+                  {product.source_url ? (
+                    <a href={product.detail_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                      {new URL(product.source_url).hostname.replace('www.', '')}
+                    </a>
+                  ) : 'Local Store'}
+                </div>
               </div>
+              {product.available_sizes && (
+                <div className="flex border-b border-gray-200 dark:border-gray-700">
+                  <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Available Sizes</div>
+                  <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">{product.available_sizes}</div>
+                </div>
+              )}
               <div className="flex">
-                <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Warranty</div>
-                <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">1 Year Manufacturer Warranty</div>
+                <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Availability</div>
+                <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">{product.availability || 'In Stock'}</div>
               </div>
             </div>
 

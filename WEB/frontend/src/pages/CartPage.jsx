@@ -173,8 +173,8 @@ const CartPage = () => {
                       </div>
 
                       <div className="text-right">
-                         <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100">${(Math.min(item.price_amazon, item.price_flipkart) * item.quantity).toFixed(2)}</span>
-                         {item.quantity > 1 && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${Math.min(item.price_amazon, item.price_flipkart).toFixed(2)} each</div>}
+                         <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100">₹{Math.round(Math.min(item.price_amazon, item.price_flipkart) * item.quantity).toLocaleString('en-IN')}</span>
+                         {item.quantity > 1 && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">₹{Math.round(Math.min(item.price_amazon, item.price_flipkart)).toLocaleString('en-IN')} each</div>}
                       </div>
 
                     </div>
@@ -191,7 +191,7 @@ const CartPage = () => {
                 <div className="space-y-4 text-gray-600 dark:text-gray-400">
                   <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
                     <span>Subtotal ({totalItems} items)</span>
-                    <span className="font-bold text-gray-900 dark:text-gray-100">${totalPrice.toFixed(2)}</span>
+                    <span className="font-bold text-gray-900 dark:text-gray-100">₹{Math.round(totalPrice).toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Shipping Estimate</span>
@@ -201,7 +201,7 @@ const CartPage = () => {
 
                 <div className="mt-6 mb-8 pt-6 border-t-2 border-gray-100 dark:border-gray-700 flex justify-between items-end">
                   <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Est. Total</span>
-                  <span className="text-3xl font-black text-gray-900 dark:text-gray-100">${totalPrice.toFixed(2)}</span>
+                  <span className="text-3xl font-black text-gray-900 dark:text-gray-100">₹{Math.round(totalPrice).toLocaleString('en-IN')}</span>
                 </div>
 
                 {!showDecisionBox ? (
@@ -216,10 +216,10 @@ const CartPage = () => {
                     {decisionStage === 1 && (
                       <form onSubmit={getRecommendation}>
                         <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-2">Smart Decision Engine</h4>
-                        <p className="text-xs text-blue-800 dark:text-blue-300 mb-4">Finding the best platform (Amazon vs Flipkart) for your primary item.</p>
+                        <p className="text-xs text-blue-800 dark:text-blue-300 mb-4">Finding the best platform (Amazon vs Reliance Digital) for your primary item.</p>
                         
                         <div className="mb-3">
-                          <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Your Budget ($)</label>
+                          <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Your Budget (₹)</label>
                           <input 
                             type="number"
                             value={budget}
@@ -261,7 +261,7 @@ const CartPage = () => {
                           <ShoppingCart className="w-7 h-7" />
                         </div>
                         <h5 className="font-black text-gray-900 dark:text-white text-lg mb-1">Recommended: {decisionResult.recommendedPlatform}</h5>
-                        <p className="text-2xl font-black text-blue-600 mb-3">${decisionResult.price.toFixed(2)}</p>
+                        <p className="text-2xl font-black text-blue-600 mb-3">₹{Math.round(decisionResult.price).toLocaleString('en-IN')}</p>
                         
                         <p className={`text-xs font-medium mb-6 leading-relaxed p-3 rounded-xl ${decisionResult.budgetSufficient ? 'bg-green-50 text-green-800 border border-green-100' : 'bg-orange-50 text-orange-800 border border-orange-100'}`}>
                           {decisionResult.reason}

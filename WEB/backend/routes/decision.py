@@ -111,20 +111,20 @@ def purchase_decision(
         if amazon_price <= flipkart_price:
             winner = "Amazon"
             winner_price = amazon_price
-            loser = "Flipkart"
+            loser = "Reliance Digital"
             loser_price = flipkart_price
-            reason = f"Amazon offers the lowest price at ₹{amazon_price:.2f}, saving ₹{flipkart_price - amazon_price:.2f} over Flipkart."
+            reason = f"Amazon offers the lowest price at ₹{amazon_price:.2f}, saving ₹{flipkart_price - amazon_price:.2f} over Reliance Digital."
         else:
-            winner = "Flipkart"
+            winner = "Reliance Digital"
             winner_price = flipkart_price
             loser = "Amazon"
             loser_price = amazon_price
-            reason = f"Flipkart offers the lowest price at ₹{flipkart_price:.2f}, saving ₹{amazon_price - flipkart_price:.2f} over Amazon."
+            reason = f"Reliance Digital offers the lowest price at ₹{flipkart_price:.2f}, saving ₹{amazon_price - flipkart_price:.2f} over Amazon."
 
         if not budget_sufficient:
             reason = (
                 f"Your budget of ₹{budget:.2f} is below both Amazon (₹{amazon_price:.2f}) "
-                f"and Flipkart (₹{flipkart_price:.2f}). Consider waiting for a sale or increasing budget. "
+                f"and Reliance Digital (₹{flipkart_price:.2f}). Consider waiting for a sale or increasing budget. "
                 f"Best option when ready: {winner} at ₹{winner_price:.2f}."
             )
 
@@ -133,52 +133,52 @@ def purchase_decision(
         if amazon_delivery < flipkart_delivery:
             winner = "Amazon"
             winner_price = amazon_price
-            loser = "Flipkart"
+            loser = "Reliance Digital"
             loser_price = flipkart_price
             if amazon_affordable:
                 reason = (
                     f"Amazon provides faster delivery ({amazon_delivery} days) at ₹{amazon_price:.2f}. "
-                    f"Flipkart takes {flipkart_delivery} days (₹{flipkart_price:.2f})."
+                    f"Reliance Digital takes {flipkart_delivery} days (₹{flipkart_price:.2f})."
                 )
             else:
                 reason = (
                     f"Amazon has faster delivery ({amazon_delivery} days) but ₹{amazon_price:.2f} exceeds your budget. "
-                    f"Best budget option: Flipkart at ₹{flipkart_price:.2f} ({flipkart_delivery} days)."
+                    f"Best budget option: Reliance Digital at ₹{flipkart_price:.2f} ({flipkart_delivery} days)."
                 )
                 if flipkart_affordable:
-                    winner = "Flipkart"
+                    winner = "Reliance Digital"
                     winner_price = flipkart_price
                     loser = "Amazon"
                     loser_price = amazon_price
         elif flipkart_delivery < amazon_delivery:
-            winner = "Flipkart"
+            winner = "Reliance Digital"
             winner_price = flipkart_price
             loser = "Amazon"
             loser_price = amazon_price
             if flipkart_affordable:
                 reason = (
-                    f"Flipkart provides faster delivery ({flipkart_delivery} days) at ₹{flipkart_price:.2f}. "
+                    f"Reliance Digital provides faster delivery ({flipkart_delivery} days) at ₹{flipkart_price:.2f}. "
                     f"Amazon takes {amazon_delivery} days (₹{amazon_price:.2f})."
                 )
             else:
                 reason = (
-                    f"Flipkart has faster delivery ({flipkart_delivery} days) but ₹{flipkart_price:.2f} exceeds your budget. "
+                    f"Reliance Digital has faster delivery ({flipkart_delivery} days) but ₹{flipkart_price:.2f} exceeds your budget. "
                     f"Best budget option: Amazon at ₹{amazon_price:.2f} ({amazon_delivery} days)."
                 )
                 if amazon_affordable:
                     winner = "Amazon"
                     winner_price = amazon_price
-                    loser = "Flipkart"
+                    loser = "Reliance Digital"
                     loser_price = flipkart_price
         else:
             # Same delivery time, pick cheaper option
             if amazon_price <= flipkart_price:
                 winner = "Amazon"
                 winner_price = amazon_price
-                loser = "Flipkart"
+                loser = "Reliance Digital"
                 loser_price = flipkart_price
             else:
-                winner = "Flipkart"
+                winner = "Reliance Digital"
                 winner_price = flipkart_price
                 loser = "Amazon"
                 loser_price = amazon_price
@@ -190,34 +190,34 @@ def purchase_decision(
     elif priority == "best_rating":
         # Compare platform ratings
         if flipkart_rating > amazon_rating:
-            winner = "Flipkart"
+            winner = "Reliance Digital"
             winner_price = flipkart_price
             loser = "Amazon"
             loser_price = amazon_price
             reason = (
-                f"Flipkart has the highest rating ({flipkart_rating}/5) for this product "
+                f"Reliance Digital has the highest rating ({flipkart_rating}/5) for this product "
                 f"at ₹{flipkart_price:.2f} with {flipkart_delivery}-day delivery. "
                 f"Amazon rating: {amazon_rating}/5 at ₹{amazon_price:.2f}."
             )
         elif amazon_rating > flipkart_rating:
             winner = "Amazon"
             winner_price = amazon_price
-            loser = "Flipkart"
+            loser = "Reliance Digital"
             loser_price = flipkart_price
             reason = (
                 f"Amazon has the highest rating ({amazon_rating}/5) for this product "
                 f"at ₹{amazon_price:.2f} with {amazon_delivery}-day delivery. "
-                f"Flipkart rating: {flipkart_rating}/5 at ₹{flipkart_price:.2f}."
+                f"Reliance Digital rating: {flipkart_rating}/5 at ₹{flipkart_price:.2f}."
             )
         else:
             # Ratings equal, pick cheaper
             if amazon_price <= flipkart_price:
                 winner = "Amazon"
                 winner_price = amazon_price
-                loser = "Flipkart"
+                loser = "Reliance Digital"
                 loser_price = flipkart_price
             else:
-                winner = "Flipkart"
+                winner = "Reliance Digital"
                 winner_price = flipkart_price
                 loser = "Amazon"
                 loser_price = amazon_price
@@ -231,9 +231,9 @@ def purchase_decision(
 
     else:
         # Fallback: cheapest
-        winner = "Amazon" if amazon_price <= flipkart_price else "Flipkart"
+        winner = "Amazon" if amazon_price <= flipkart_price else "Reliance Digital"
         winner_price = amazon_price if winner == "Amazon" else flipkart_price
-        loser = "Flipkart" if winner == "Amazon" else "Amazon"
+        loser = "Reliance Digital" if winner == "Amazon" else "Amazon"
         loser_price = flipkart_price if winner == "Amazon" else amazon_price
         reason = f"Best overall value available on {winner} at ₹{winner_price:.2f}."
 

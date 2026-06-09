@@ -1,15 +1,15 @@
 """
 services/product_service.py - Product data integration service.
 
-Fetches real product data from Fake Store API and enriches it with:
-- Platform comparison data (Amazon vs Flipkart)
-- Price variations per platform
-- Delivery information
-- Platform ratings
+Fetches product data from local CSV files (extracted from Amazon, Reliance Digital, and Myntra Fashion)
+and enriches it with platform comparison details, handling missing ratings and reviews
+with worthiness-based and random defaults, and populating rich metadata fields.
 
 Stores data in MongoDB using upsert pattern.
 """
-import requests
+import csv
+import re
+import os
 import random
 from datetime import datetime
 import logging
@@ -18,134 +18,362 @@ from typing import Dict, List, Any
 
 logger = logging.getLogger(__name__)
 
-FAKE_STORE_API = "https://fakestoreapi.com/products"
+SERVICES_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.dirname(SERVICES_DIR)
+WEB_DIR = os.path.dirname(BACKEND_DIR)
+DATA_DIR = os.path.join(WEB_DIR, "Data")
+
+AMAZON_CSV_PATH = os.path.join(DATA_DIR, "amazon_data_with_images.csv")
+RELIANCE_CSV_PATH = os.path.join(DATA_DIR, "reliance_digital_mobiles.csv")
+FASHION_CSV_PATH = os.path.join(DATA_DIR, "fashion_data.csv")
 
 
-def generate_platform_price(base_price: float, platform: str) -> float:
-    """
-    Generate platform-specific price with variation.
-    
-    - Amazon: base_price + random variation (0-15%)
-    - Flipkart: base_price - random variation (0-10%)
-    """
-    if platform == "amazon":
-        variation = random.uniform(0, base_price * 0.15)
-        return round(base_price + variation, 2)
-    elif platform == "flipkart":
-        variation = random.uniform(0, base_price * 0.10)
-        return round(base_price - variation, 2)
-    return base_price
-
-
-def generate_platform_rating(base_rating: float) -> float:
-    """Generate platform-specific rating with slight variation."""
-    variation = random.uniform(-0.3, 0.5)
-    rating = base_rating + variation
-    return round(max(0, min(5.0, rating)), 2)  # Clamp between 0-5
-
-
-def generate_delivery_days(platform: str) -> int:
-    """Generate delivery days based on platform."""
-    if platform == "amazon":
-        return random.randint(1, 2)  # 1-2 days
-    elif platform == "flipkart":
-        return random.randint(2, 3)  # 2-3 days
-    return 2
-
-
-def fetch_products_from_api() -> List[Dict[str, Any]]:
-    """
-    Fetch products from Fake Store API.
-    
-    Returns:
-        List of products from API or empty list if fetch fails.
-    """
+def clean_price(price_str: str) -> float:
+    """Clean and parse price string to float."""
+    if not price_str:
+        return None
+    # Remove currency symbols, commas, trailing dots/spaces
+    price_str = price_str.replace('₹', '').replace('$', '').replace(',', '').strip()
+    if price_str.endswith('.'):
+        price_str = price_str[:-1]
+    if not price_str:
+        return None
     try:
-        logger.info(f"Fetching products from {FAKE_STORE_API}")
-        response = requests.get(FAKE_STORE_API, timeout=10)
-        response.raise_for_status()
-        products = response.json()
-        logger.info(f"✓ Fetched {len(products)} products from Fake Store API")
-        return products
-    except Exception as e:
-        logger.error(f"✗ Failed to fetch from Fake Store API: {e}")
-        return []
+        return float(price_str)
+    except ValueError:
+        return None
 
 
-def transform_product(api_product: Dict[str, Any]) -> Dict[str, Any]:
+def clean_fashion_price(price_str: str) -> float:
+    """Clean Myntra-specific double-price format (e.g. Rs. 1209Rs. 1799)."""
+    if not price_str:
+        return None
+    price_str = price_str.strip()
+    # Find the first Rs. followed by digits (ignores trailing MRP duplicate)
+    match = re.search(r'Rs\.\s*([\d,]+)', price_str)
+    if match:
+        val_str = match.group(1).replace(',', '').strip()
+        try:
+            return float(val_str)
+        except ValueError:
+            pass
+    return clean_price(price_str)
+
+
+def clean_rating(rating_val: str) -> float:
+    """Clean and parse rating value to float. Returns None if invalid/missing."""
+    if not rating_val:
+        return None
+    rating_val = str(rating_val).strip()
+    if rating_val.lower() == 'n/a' or not rating_val:
+        return None
+    match = re.match(r'^([0-9.]+)', rating_val)
+    if match:
+        try:
+            val = float(match.group(1))
+            return round(max(0.0, min(5.0, val)), 2)
+        except ValueError:
+            pass
+    return None
+
+
+def generate_worthiness_rating(brand: str, price: float) -> float:
     """
-    Transform Fake Store API product to our enriched schema.
+    Generate product rating dynamically based on price tier and brand prestige.
+    Returns a realistic rating between 3.6 and 4.9.
+    """
+    rating = 3.8
+    brand_lower = brand.lower() if brand else ""
     
-    Adds:
-    - Platform-specific prices
-    - Platform ratings
-    - Delivery information
-    - Timestamp
+    # Brand reputation weights
+    premium_brands = ["apple", "samsung", "google", "oneplus", "damensch", "peter england", "varanga", "sangria"]
+    average_brands = ["motorola", "realme", "roadster", "highlander", "mast & harbour"]
     
-    Args:
-        api_product: Product from Fake Store API
+    if any(pb in brand_lower for pb in premium_brands):
+        rating += 0.5
+    elif any(ab in brand_lower for ab in average_brands):
+        rating += 0.2
         
-    Returns:
-        Transformed product for MongoDB storage
+    # Price worthiness weights
+    if price > 50000:
+        rating += 0.4
+    elif price > 10000:
+        rating += 0.2
+    elif price > 1000:
+        rating += 0.1
+        
+    # Inject slight controlled randomness
+    variation = random.uniform(-0.3, 0.2)
+    final_rating = round(rating + variation, 1)
+    return max(3.6, min(4.9, final_rating))
+
+
+def extract_brand(title: str, default_brand: str = "Generic") -> str:
+    """Extract known brand from product titles."""
+    title_lower = title.lower()
+    brands = ["samsung", "google", "oneplus", "apple", "motorola", "realme", "itel", "micromax", "jio", "karbonn", "suritch", "dexnor"]
+    for b in brands:
+        if b in title_lower:
+            return b.capitalize() if b != "jio" else "Jio"
+    return default_brand
+
+
+def load_products_from_csv() -> List[Dict[str, Any]]:
     """
-    base_price = float(api_product.get("price", 10.0))
-    base_rating = float(api_product.get("rating", {}).get("rate", 3.0))
+    Read and parse Amazon, Reliance Digital, and Fashion CSV files.
+    """
+    products = []
     
-    return {
-        "productId": str(api_product["id"]),
-        "name": api_product.get("title", ""),
-        "description": api_product.get("description", ""),
-        "category": api_product.get("category", "").lower(),
-        "image": api_product.get("image", ""),
-        "base_price": base_price,
-        "rating": base_rating,
-        "platforms": {
-            "amazon": {
-                "price": generate_platform_price(base_price, "amazon"),
-                "delivery": generate_delivery_days("amazon"),
-                "rating": generate_platform_rating(base_rating),
-            },
-            "flipkart": {
-                "price": generate_platform_price(base_price, "flipkart"),
-                "delivery": generate_delivery_days("flipkart"),
-                "rating": generate_platform_rating(base_rating),
-            }
-        },
-        "lastUpdated": datetime.utcnow(),
-        # For backward compatibility with existing code
-        "avgRating": base_rating,
-        "reviewCount": int(api_product.get("rating", {}).get("count", 0)),
-        "price_amazon": generate_platform_price(base_price, "amazon"),
-        "price_flipkart": generate_platform_price(base_price, "flipkart"),
-    }
+    # 1. Parse Amazon CSV (Electronics/Accessories)
+    if os.path.exists(AMAZON_CSV_PATH):
+        try:
+            logger.info(f"Loading Amazon CSV from {AMAZON_CSV_PATH}")
+            with open(AMAZON_CSV_PATH, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader, 1):
+                    title = row.get('title', '').strip()
+                    if not title:
+                        continue
+                    
+                    price = clean_price(row.get('price'))
+                    if price is None:
+                        if any(k in title.lower() for k in ["case", "kickstand", "cover", "protector", "stand"]):
+                            price = 499.0
+                        else:
+                            price = 9999.0
+                            
+                    brand = extract_brand(title)
+                    
+                    # Worthiness-based ratings and random reviews count
+                    rating = clean_rating(row.get('rating'))
+                    if rating is None:
+                        rating = generate_worthiness_rating(brand, price)
+                    reviews = random.randint(50, 1500)
+                    
+                    image = row.get('image', '').strip()
+                    availability = row.get('availability', 'In Stock').strip()
+                    mrp = round(price * random.uniform(1.1, 1.25), 2)
+                    detail_link = f"https://www.amazon.in/s?k={title.replace(' ', '+')}"
+                    
+                    comparison_price = round(price * random.uniform(0.95, 1.1), 2)
+                    comparison_rating = round(max(1.0, min(5.0, rating + random.uniform(-0.3, 0.4))), 2)
+                    
+                    product_id = f"amz_{idx}"
+                    prod_doc = {
+                        "productId": product_id,
+                        "name": title,
+                        "description": f"Availability: {availability}. High-quality product available on Amazon.",
+                        "category": "electronics",
+                        "image": image,
+                        "base_price": price,
+                        "rating": rating,
+                        "avgRating": rating,
+                        "reviewCount": reviews,
+                        # Dynamic Rich Metadata
+                        "brand": brand,
+                        "mrp": mrp,
+                        "availability": availability,
+                        "available_sizes": None,
+                        "detail_link": detail_link,
+                        "source_url": "https://www.amazon.in",
+                        "platforms": {
+                            "amazon": {
+                                "price": price,
+                                "delivery": random.randint(1, 2),
+                                "rating": rating,
+                            },
+                            "flipkart": {
+                                "price": comparison_price,
+                                "delivery": random.randint(2, 3),
+                                "rating": comparison_rating,
+                            }
+                        },
+                        "price_amazon": price,
+                        "price_flipkart": comparison_price,
+                        "lastUpdated": datetime.utcnow()
+                    }
+                    products.append(prod_doc)
+            logger.info(f"✓ Loaded {len(products)} products from Amazon CSV")
+        except Exception as e:
+            logger.error(f"✗ Error reading Amazon CSV: {e}")
+    else:
+        logger.warning(f"Amazon CSV not found at {AMAZON_CSV_PATH}")
+
+    # 2. Parse Reliance Digital CSV (Mobiles)
+    if os.path.exists(RELIANCE_CSV_PATH):
+        try:
+            logger.info(f"Loading Reliance Digital CSV from {RELIANCE_CSV_PATH}")
+            reliance_count = 0
+            with open(RELIANCE_CSV_PATH, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader, 1):
+                    title = row.get('Product Title', '').strip()
+                    if not title:
+                        continue
+                    
+                    price = clean_price(row.get('Price'))
+                    if price is None:
+                        price = 14999.0
+                        
+                    brand = extract_brand(title)
+                    rating = clean_rating(row.get('Rating'))
+                    if rating is None:
+                        rating = generate_worthiness_rating(brand, price)
+                    reviews = random.randint(50, 1500)
+                    
+                    image = row.get('Product Image URL', '').strip()
+                    product_link = row.get('Product Link', '').strip()
+                    mrp = round(price * random.uniform(1.1, 1.25), 2)
+                    
+                    comparison_price = round(price * random.uniform(0.9, 1.05), 2)
+                    comparison_rating = round(max(1.0, min(5.0, rating + random.uniform(-0.3, 0.4))), 2)
+                    
+                    product_id = f"rel_{idx}"
+                    prod_doc = {
+                        "productId": product_id,
+                        "name": title,
+                        "description": f"Featured mobile phone on Reliance Digital. View detail link for checkout.",
+                        "category": "electronics",
+                        "image": image,
+                        "base_price": price,
+                        "rating": rating,
+                        "avgRating": rating,
+                        "reviewCount": reviews,
+                        # Dynamic Rich Metadata
+                        "brand": brand,
+                        "mrp": mrp,
+                        "availability": "In Stock",
+                        "available_sizes": None,
+                        "detail_link": product_link,
+                        "source_url": "https://www.reliancedigital.in",
+                        "platforms": {
+                            "amazon": {
+                                "price": comparison_price,
+                                "delivery": random.randint(1, 2),
+                                "rating": comparison_rating,
+                            },
+                            "flipkart": {
+                                "price": price,
+                                "delivery": random.randint(2, 3),
+                                "rating": rating,
+                            }
+                        },
+                        "price_amazon": comparison_price,
+                        "price_flipkart": price,
+                        "lastUpdated": datetime.utcnow()
+                    }
+                    products.append(prod_doc)
+                    reliance_count += 1
+            logger.info(f"✓ Loaded {reliance_count} products from Reliance Digital CSV")
+        except Exception as e:
+            logger.error(f"✗ Error reading Reliance Digital CSV: {e}")
+    else:
+        logger.warning(f"Reliance Digital CSV not found at {RELIANCE_CSV_PATH}")
+
+    # 3. Parse Myntra Fashion CSV (Clothing/Kurtas/Blazers)
+    if os.path.exists(FASHION_CSV_PATH):
+        try:
+            logger.info(f"Loading Myntra Fashion CSV from {FASHION_CSV_PATH}")
+            fashion_count = 0
+            with open(FASHION_CSV_PATH, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader, 1):
+                    title = row.get('product_title', '').strip()
+                    image = row.get('image_url', '').strip()
+                    
+                    # CRITICAL UI RULE: Skip rows that lack image or title to preserve visual appeal
+                    if not title or not image or image.lower() in ['n/a', '']:
+                        continue
+                    
+                    price = clean_fashion_price(row.get('price_discounted'))
+                    if price is None:
+                        price = 799.0  # Safe fallback price for clothing items
+                        
+                    mrp = clean_fashion_price(row.get('mrp'))
+                    if mrp is None or mrp < price:
+                        mrp = round(price * random.uniform(1.2, 1.4), 2)
+                        
+                    brand = row.get('brand', '').strip()
+                    if not brand:
+                        brand = "Generic Clothing"
+                        
+                    rating = generate_worthiness_rating(brand, price)
+                    reviews = random.randint(30, 800)
+                    
+                    sizes = row.get('available_sizes', '').strip()
+                    if not sizes or sizes.lower() in ['n/a', '']:
+                        sizes = "S, M, L, XL, XXL"
+                        
+                    detail_link = row.get('detail_link', '').strip()
+                    if detail_link and not detail_link.startswith('http'):
+                        detail_link = f"https://www.myntra.com/{detail_link}"
+                    
+                    source_url = row.get('source_url', 'https://www.myntra.com').strip()
+                    
+                    comparison_price = round(price * random.uniform(0.92, 1.08), 2)
+                    comparison_rating = round(max(1.0, min(5.0, rating + random.uniform(-0.3, 0.3))), 2)
+                    
+                    product_id = f"fash_{idx}"
+                    prod_doc = {
+                        "productId": product_id,
+                        "name": title,
+                        "description": f"Elegant clothing and lifestyle design by {brand}. Premium wear for modern wardrobes.",
+                        "category": "fashion",
+                        "image": image,
+                        "base_price": price,
+                        "rating": rating,
+                        "avgRating": rating,
+                        "reviewCount": reviews,
+                        # Dynamic Rich Metadata
+                        "brand": brand,
+                        "mrp": mrp,
+                        "availability": "In Stock",
+                        "available_sizes": sizes,
+                        "detail_link": detail_link,
+                        "source_url": source_url,
+                        "platforms": {
+                            "amazon": {
+                                "price": comparison_price,
+                                "delivery": random.randint(1, 2),
+                                "rating": comparison_rating,
+                            },
+                            "flipkart": {
+                                "price": price,
+                                "delivery": random.randint(2, 3),
+                                "rating": rating,
+                            }
+                        },
+                        "price_amazon": comparison_price,
+                        "price_flipkart": price,
+                        "lastUpdated": datetime.utcnow()
+                    }
+                    products.append(prod_doc)
+                    fashion_count += 1
+            logger.info(f"✓ Loaded {fashion_count} products from Myntra Fashion CSV (Skipped rows without images)")
+        except Exception as e:
+            logger.error(f"✗ Error reading Myntra Fashion CSV: {e}")
+    else:
+        logger.warning(f"Myntra Fashion CSV not found at {FASHION_CSV_PATH}")
+
+    return products
 
 
 def load_products_to_db() -> Dict[str, Any]:
     """
-    Fetch products from Fake Store API and store/update in MongoDB.
-    
-    Uses upsert pattern: update if exists, insert if new.
-    
-    Returns:
-        Dict with operation results and statistics.
+    Load products from all local CSV files and store/update in MongoDB.
     """
     try:
-        # Fetch from API
-        api_products = fetch_products_from_api()
+        products_to_load = load_products_from_csv()
         
-        if not api_products:
+        if not products_to_load:
             return {
                 "success": False,
-                "message": "Failed to fetch products from Fake Store API",
+                "message": "No products found in CSV files to load",
                 "productsLoaded": 0,
                 "productsInserted": 0,
                 "productsUpdated": 0,
             }
         
-        # Transform products
-        products_to_load = [transform_product(p) for p in api_products]
-        
-        # Upsert to MongoDB
         col = products_col()
         inserted_count = 0
         updated_count = 0
@@ -161,9 +389,11 @@ def load_products_to_db() -> Dict[str, Any]:
                 inserted_count += 1
             elif result.modified_count > 0:
                 updated_count += 1
+            else:
+                updated_count += 1
         
         logger.info(
-            f"✓ Product load complete: "
+            f"✓ CSV Product load complete: "
             f"{len(products_to_load)} total, "
             f"{inserted_count} inserted, "
             f"{updated_count} updated"
@@ -171,17 +401,17 @@ def load_products_to_db() -> Dict[str, Any]:
         
         return {
             "success": True,
-            "message": f"Successfully loaded {len(products_to_load)} products",
+            "message": f"Successfully loaded {len(products_to_load)} products from all CSV datasets",
             "productsLoaded": len(products_to_load),
             "productsInserted": inserted_count,
             "productsUpdated": updated_count,
         }
         
     except Exception as e:
-        logger.error(f"✗ Error loading products: {e}")
+        logger.error(f"✗ Error loading products from CSV: {e}")
         return {
             "success": False,
-            "message": f"Error loading products: {str(e)}",
+            "message": f"Error loading products from CSV: {str(e)}",
             "productsLoaded": 0,
             "productsInserted": 0,
             "productsUpdated": 0,

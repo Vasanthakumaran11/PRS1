@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import all route modules
 from routes import auth, product, review, cart, decision
 from database import products_col, customers_col, reviews_col, cart_col, purchase_preferences_col
+from services.product_service import load_products_to_db
 
 # ---------------------------------------------------------------------------
 # App instance
@@ -73,8 +74,11 @@ def startup_event():
 
     # Seed products if collection is empty
     if products_col().count_documents({}) == 0:
-        _seed_products()
-        print("[PRS] Seeded 6 demo products into MongoDB.")
+        result = load_products_to_db()
+        if result["success"]:
+            print(f"[PRS] Seeded {result['productsLoaded']} products from local CSV datasets into MongoDB.")
+        else:
+            print(f"[PRS] Failed to seed products from CSV: {result.get('message')}")
     else:
         print(f"[PRS] Products collection already has {products_col().count_documents({})} documents.")
 

@@ -12,6 +12,9 @@ from database import products_col, reviews_col, cart_col
 from services.product_service import load_products_to_db
 
 def main():
+    import sys
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
     print("Connecting to MongoDB and resetting collections...")
     
     # Clear old products, cart items, and user reviews so we start fresh with the new product catalog

@@ -13,6 +13,11 @@ export const categories = [
     id: "fashion",
     name: "Fashion & Lifestyle",
     description: "Clothing, Footwear, Accessories"
+  },
+  {
+    id: "household",
+    name: "Household & Groceries",
+    description: "Daily essentials, fresh fruits, and vegetables"
   }
 ];
 

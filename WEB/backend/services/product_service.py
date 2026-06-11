@@ -26,6 +26,8 @@ DATA_DIR = os.path.join(WEB_DIR, "Data")
 AMAZON_CSV_PATH = os.path.join(DATA_DIR, "amazon_data_with_images.csv")
 RELIANCE_CSV_PATH = os.path.join(DATA_DIR, "reliance_digital_mobiles.csv")
 FASHION_CSV_PATH = os.path.join(DATA_DIR, "fashion_data.csv")
+FURNITURE_CSV_PATH = os.path.join(DATA_DIR, "furniture_data.csv")
+HOUSEHOLD_CSV_PATH = os.path.join(DATA_DIR, "household_data.csv")
 
 
 def clean_price(price_str: str) -> float:
@@ -85,9 +87,8 @@ def generate_worthiness_rating(brand: str, price: float) -> float:
     rating = 3.8
     brand_lower = brand.lower() if brand else ""
     
-    # Brand reputation weights
-    premium_brands = ["apple", "samsung", "google", "oneplus", "damensch", "peter england", "varanga", "sangria"]
-    average_brands = ["motorola", "realme", "roadster", "highlander", "mast & harbour"]
+    premium_brands = ["apple", "samsung", "google", "oneplus", "damensch", "peter england", "varanga", "sangria", "urban ladder", "fresho"]
+    average_brands = ["motorola", "realme", "roadster", "highlander", "mast & harbour", "bigbasket"]
     
     if any(pb in brand_lower for pb in premium_brands):
         rating += 0.5
@@ -352,8 +353,162 @@ def load_products_from_csv() -> List[Dict[str, Any]]:
             logger.info(f"✓ Loaded {fashion_count} products from Myntra Fashion CSV (Skipped rows without images)")
         except Exception as e:
             logger.error(f"✗ Error reading Myntra Fashion CSV: {e}")
+    # 4. Parse Furniture CSV (Home & Furniture)
+    if os.path.exists(FURNITURE_CSV_PATH):
+        try:
+            logger.info(f"Loading Furniture CSV from {FURNITURE_CSV_PATH}")
+            furniture_count = 0
+            with open(FURNITURE_CSV_PATH, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader, 1):
+                    title = row.get('Product Title', '').strip()
+                    image = row.get('High-Resolution Image URL', '').strip()
+                    
+                    if not title or not image or image.lower() in ['n/a', '']:
+                        continue
+                    
+                    price = clean_price(row.get('Price'))
+                    if price is None:
+                        price = 9999.0
+                        
+                    brand = row.get('Brand / Seller', '').strip()
+                    if not brand or brand.lower() == 'n/a':
+                        brand = "Urban Ladder"
+                        
+                    material = row.get('Primary Material', '').strip()
+                    if not material or material.lower() == 'n/a':
+                        material = "Wood"
+                        
+                    rating = generate_worthiness_rating(brand, price)
+                    reviews = random.randint(30, 800)
+                    
+                    detail_link = row.get('Product Link', '').strip()
+                    if not detail_link:
+                        detail_link = f"https://www.urbanladder.com/s?q={title.replace(' ', '+')}"
+                    
+                    source_url = "https://www.urbanladder.com"
+                    
+                    comparison_price = round(price * random.uniform(0.92, 1.08), 2)
+                    comparison_rating = round(max(1.0, min(5.0, rating + random.uniform(-0.3, 0.3))), 2)
+                    
+                    product_id = f"furn_{idx}"
+                    prod_doc = {
+                        "productId": product_id,
+                        "name": title,
+                        "description": f"High-quality {material} furniture by {brand}. Premium addition to modern homes.",
+                        "category": "home",
+                        "image": image,
+                        "base_price": price,
+                        "rating": rating,
+                        "avgRating": rating,
+                        "reviewCount": reviews,
+                        "brand": brand,
+                        "mrp": round(price * random.uniform(1.2, 1.4), 2),
+                        "availability": "In Stock",
+                        "available_sizes": None,
+                        "detail_link": detail_link,
+                        "source_url": source_url,
+                        "platforms": {
+                            "amazon": {
+                                "price": comparison_price,
+                                "delivery": random.randint(1, 2),
+                                "rating": comparison_rating,
+                            },
+                            "flipkart": {
+                                "price": price,
+                                "delivery": random.randint(2, 3),
+                                "rating": rating,
+                            }
+                        },
+                        "price_amazon": comparison_price,
+                        "price_flipkart": price,
+                        "lastUpdated": datetime.utcnow()
+                    }
+                    products.append(prod_doc)
+                    furniture_count += 1
+            logger.info(f"✓ Loaded {furniture_count} products from Furniture CSV")
+        except Exception as e:
+            logger.error(f"✗ Error reading Furniture CSV: {e}")
     else:
-        logger.warning(f"Myntra Fashion CSV not found at {FASHION_CSV_PATH}")
+        logger.warning(f"Furniture CSV not found at {FURNITURE_CSV_PATH}")
+
+    # 5. Parse Household CSV (Groceries & Essentials)
+    if os.path.exists(HOUSEHOLD_CSV_PATH):
+        try:
+            logger.info(f"Loading Household CSV from {HOUSEHOLD_CSV_PATH}")
+            household_count = 0
+            with open(HOUSEHOLD_CSV_PATH, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader, 1):
+                    title = row.get('Product Name', '').strip()
+                    image = row.get('Product Image URL', '').strip()
+                    
+                    if not title or not image or image.lower() in ['n/a', '']:
+                        continue
+                    
+                    price = clean_price(row.get('Current Price'))
+                    if price is None:
+                        price = 99.0
+                        
+                    qty = row.get('Quantity / Weight / Volume', '').strip()
+                    status_avail = row.get('Stock Availability Status', 'In Stock').strip()
+                    
+                    brand = "BigBasket"
+                    if title.startswith("fresho!"):
+                        brand = "Fresho"
+                        
+                    rating = generate_worthiness_rating(brand, price)
+                    reviews = random.randint(10, 500)
+                    
+                    detail_link = row.get('Product Link', '').strip()
+                    if not detail_link:
+                        detail_link = f"https://www.bigbasket.com/s?q={title.replace(' ', '+')}"
+                        
+                    source_url = "https://www.bigbasket.com"
+                    
+                    comparison_price = round(price * random.uniform(0.92, 1.08), 2)
+                    comparison_rating = round(max(1.0, min(5.0, rating + random.uniform(-0.3, 0.3))), 2)
+                    
+                    product_id = f"house_{idx}"
+                    prod_doc = {
+                        "productId": product_id,
+                        "name": title,
+                        "description": f"Fresh and healthy {title} ({qty}). Quality essentials delivered straight to your home.",
+                        "category": "household",
+                        "image": image,
+                        "base_price": price,
+                        "rating": rating,
+                        "avgRating": rating,
+                        "reviewCount": reviews,
+                        "brand": brand,
+                        "mrp": round(price * random.uniform(1.1, 1.2), 2),
+                        "availability": status_avail,
+                        "available_sizes": qty,
+                        "detail_link": detail_link,
+                        "source_url": source_url,
+                        "platforms": {
+                            "amazon": {
+                                "price": comparison_price,
+                                "delivery": random.randint(1, 2),
+                                "rating": comparison_rating,
+                            },
+                            "flipkart": {
+                                "price": price,
+                                "delivery": random.randint(1, 2),
+                                "rating": rating,
+                            }
+                        },
+                        "price_amazon": comparison_price,
+                        "price_flipkart": price,
+                        "lastUpdated": datetime.utcnow()
+                    }
+                    products.append(prod_doc)
+                    household_count += 1
+            logger.info(f"✓ Loaded {household_count} products from Household CSV")
+        except Exception as e:
+            logger.error(f"✗ Error reading Household CSV: {e}")
+    else:
+        logger.warning(f"Household CSV not found at {HOUSEHOLD_CSV_PATH}")
 
     return products
 

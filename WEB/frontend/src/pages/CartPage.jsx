@@ -216,7 +216,7 @@ const CartPage = () => {
                     {decisionStage === 1 && (
                       <form onSubmit={getRecommendation}>
                         <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-2">Smart Decision Engine</h4>
-                        <p className="text-xs text-blue-800 dark:text-blue-300 mb-4">Finding the best platform (Amazon vs Reliance Digital) for your primary item.</p>
+                        <p className="text-xs text-blue-800 dark:text-blue-300 mb-4">Finding the best platform (Amazon vs competitor platforms) for your primary item.</p>
                         
                         <div className="mb-3">
                           <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Your Budget (₹)</label>

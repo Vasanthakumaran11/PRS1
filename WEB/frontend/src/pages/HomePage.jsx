@@ -32,35 +32,66 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-transparent">
       {/* Hero Section */}
-      <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-transparent">
+      <section className="relative pt-24 pb-16 lg:pt-36 lg:pb-28 overflow-hidden bg-transparent">
         <div className="absolute inset-0 z-0">
-           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#bdf584]/60 dark:bg-blue-100 rounded-full blur-[100px] opacity-60 translate-x-1/2 -translate-y-1/4"></div>
-           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#8cc63f]/30 dark:bg-indigo-100 rounded-full blur-[80px] opacity-60 -translate-x-1/2 translate-y-1/4"></div>
+           <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-[#bdf584]/50 dark:bg-emerald-950/20 rounded-full blur-[110px] opacity-70 translate-x-1/4 -translate-y-1/4"></div>
+           <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-[#8cc63f]/25 dark:bg-teal-950/10 rounded-full blur-[90px] opacity-60 -translate-x-1/4 translate-y-1/4"></div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
-          <h1 className="text-5xl lg:text-7xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-tight mb-6 max-w-4xl mx-auto">
-            Find the Best Products.<br/>
-            Read <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#004b36] to-[#8cc63f] dark:from-blue-600 dark:to-indigo-600">Honest Reviews.</span>
-          </h1>
-          <p className="text-xl text-gray-500 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Revu helps you discover top-rated tech, home, and fashion products while suggesting the most optimal platform to purchase them based on your budget.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <button 
-              onClick={() => navigate('/products')}
-              className="w-full sm:w-auto px-10 py-4 bg-[#004b36] dark:bg-gray-900 text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:hover:bg-gray-800 hover:-translate-y-0.5 transition-all shadow-xl text-lg flex justify-center items-center"
-            >
-              Start Exploring <ArrowRight className="ml-2 w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => navigate('/top-rated')}
-              className="w-full sm:w-auto px-10 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 hover:-translate-y-0.5 transition-all shadow-sm text-lg flex justify-center items-center"
-            >
-              See Top Rated
-            </button>
+          {/* Left Column: Context, Brand Heading & Features */}
+          <div className="lg:col-span-6 flex flex-col justify-center text-center lg:text-left">
+            
+            {/* Tag indicator */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#bdf584]/20 border border-[#004b36]/10 text-[#004b36] dark:text-[#bdf584] text-xs font-bold uppercase tracking-wider mb-6 mx-auto lg:mx-0 w-fit">
+              <span className="w-2 h-2 rounded-full bg-[#8cc63f] animate-pulse"></span>
+              Real-time Store Comparison
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-tight mb-6 max-w-2xl">
+              Find the Best Products.<br/>
+              Read <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#004b36] to-[#8cc63f] dark:from-emerald-400 dark:to-lime-400">Honest Reviews.</span>
+            </h1>
+            
+            <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-xl leading-relaxed">
+              Revu helps you discover top-rated tech, home, and fashion products while suggesting the most optimal platform to purchase them based on your budget.
+            </p>
+            
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4">
+              <button 
+                onClick={() => navigate('/products')}
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#004b36] dark:bg-gray-800 text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:hover:bg-gray-700 active:scale-[0.99] hover:-translate-y-0.5 transition-all shadow-lg text-base flex justify-center items-center gap-2"
+              >
+                Start Exploring <ArrowRight className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => navigate('/top-rated')}
+                className="w-full sm:w-auto px-8 py-3.5 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-150 border border-gray-200 dark:border-gray-800 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 active:scale-[0.99] hover:-translate-y-0.5 transition-all shadow-sm text-base flex justify-center items-center"
+              >
+                See Top Rated
+              </button>
+            </div>
+
+            
+
           </div>
+
+          {/* Right Column: Visual illustration */}
+          <div className="lg:col-span-6 w-full relative flex items-center justify-center">
+            <div className="w-full relative max-w-2xl bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-white/60 dark:border-gray-850/60 rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
+              {/* Glowing inner blob */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#bdf584]/20 rounded-full blur-[80px] pointer-events-none -z-10"></div>
+              
+              <img 
+                src="/hero_shopping.png" 
+                alt="Product review comparison" 
+                className="w-full h-auto object-contain rounded-2xl transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+            </div>
+          </div>
+
         </div>
       </section>
 

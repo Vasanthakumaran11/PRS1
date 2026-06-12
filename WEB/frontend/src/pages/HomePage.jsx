@@ -124,55 +124,6 @@ const HomePage = () => {
         })}
       </div>
 
-      {/* Apple-Style Footer From Reference Image */}
-      <footer className="bg-[#f5f5f7] dark:bg-[#111] text-[#1d1d1f] dark:text-[#a1a1a6] text-xs pt-10 pb-8 mt-auto border-t border-gray-200 dark:border-gray-800 font-sans transition-colors duration-300">
-         <div className="max-w-5xl mx-auto px-4">
-            
-            {/* Top row with Logo/Brand */}
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-300 dark:border-gray-700 pb-4">
-              <Package className="w-5 h-5 text-gray-900 dark:text-gray-100" /> 
-              <span className="text-gray-500 dark:text-gray-400 font-medium text-2xl">Support</span>
-            </div>
-
-            {/* Links Columns */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-               <div>
-                 <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-2.5">Resources</h3>
-                 <ul className="space-y-2.5 text-gray-600 dark:text-gray-400 text-2xl">
-                   <li><Link to="/help" className="hover:underline">My Support</Link></li>
-                   <li><Link to="/help" className="hover:underline">Product Documentation</Link></li>
-                   <li><Link to="/help" className="hover:underline">Accessibility</Link></li>
-                 </ul>
-               </div>
-
-               <div>
-                 <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-2.5">Connect</h3>
-                 <ul className="space-y-2.5 text-gray-600 dark:text-gray-400 text-2xl">
-                   <li><Link to="/help" className="hover:underline">Contact us</Link></li>
-                   <li><Link to="/help" className="hover:underline">Support app</Link></li>
-                 </ul>
-               </div>
-
-            </div>
-
-            <div className="border-t border-gray-300 dark:border-gray-700 pt-4 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 relative text-[11px]">
-               <div className="flex flex-col md:flex-row items-start md:items-center md:gap-4 text-[#6e6e73] dark:text-[#a1a1a6] space-y-2 md:space-y-0">
-                 <div className="flex flex-wrap items-center divide-x divide-gray-300 dark:divide-gray-600">
-                    <Link to="/" className="px-2 hover:text-gray-900 dark:hover:text-gray-100 dark:hover:text-white first:pl-0">Privacy Policy</Link>
-                    <Link to="/" className="px-2 hover:text-gray-900 dark:hover:text-gray-100 dark:hover:text-white">Terms of Use</Link>
-                    <Link to="/" className="px-2 hover:text-gray-900 dark:hover:text-gray-100 dark:hover:text-white">Sales Policy</Link>
-                    <Link to="/" className="px-2 hover:text-gray-900 dark:hover:text-gray-100 dark:hover:text-white">Legal</Link>
-                    <Link to="/" className="pl-2 hover:text-gray-900 dark:hover:text-gray-100 dark:hover:text-white">Site Map</Link>
-                 </div>
-               </div>
-               <div className="absolute top-4 right-0 md:static hover:text-gray-900 dark:hover:text-gray-100 dark:hover:text-white cursor-pointer transition-colors font-medium">
-                 India
-               </div>
-            </div>
-
-         </div>
-      </footer>
-
     </div>
   );
 };

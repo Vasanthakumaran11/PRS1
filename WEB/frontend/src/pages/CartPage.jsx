@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { productAPI, cartAPI, decisionAPI } from '../services/api';
+import { getProductDetailUrl, getPlatformBadge } from '../utils/productUtils';
 import ProductCard from '../components/ProductCard';
 import { mockProducts } from '../data/mockData';
 import { toast } from 'react-hot-toast';
@@ -133,14 +134,14 @@ const CartPage = () => {
             <div className="flex-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700/80 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700/80">
               {cartItems.map(item => (
                 <div key={item.productId} className="p-6 transition-colors hover:bg-white/80 dark:hover:bg-gray-800/80 flex flex-col sm:flex-row gap-6 group">
-                  <Link to={`/product/${item.productId}`} className="w-full sm:w-32 h-32 flex-shrink-0 border border-gray-100 dark:border-gray-700/80 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 block">
+                  <Link to={getProductDetailUrl(item)} className="w-full sm:w-32 h-32 flex-shrink-0 border border-gray-100 dark:border-gray-700/80 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 block">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                   </Link>
                   <div className="flex-1 flex flex-col pt-1">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors line-clamp-1">
-                           <Link to={`/product/${item.productId}`}>{item.name}</Link>
+                           <Link to={getProductDetailUrl(item)}>{item.name}</Link>
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-0.5">{item.category}</p>
                       </div>
@@ -173,7 +174,10 @@ const CartPage = () => {
                       </div>
 
                       <div className="text-right">
-                         <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100">₹{Math.round(Math.min(item.price_amazon, item.price_flipkart) * item.quantity).toLocaleString('en-IN')}</span>
+                         <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100 flex items-center justify-end">
+                           ₹{Math.round(Math.min(item.price_amazon, item.price_flipkart) * item.quantity).toLocaleString('en-IN')}
+                           {getPlatformBadge(item.productId)}
+                         </span>
                          {item.quantity > 1 && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">₹{Math.round(Math.min(item.price_amazon, item.price_flipkart)).toLocaleString('en-IN')} each</div>}
                       </div>
 
@@ -236,9 +240,9 @@ const CartPage = () => {
                             onChange={(e) => setPriority(e.target.value)}
                             className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                           >
-                            <option value="low_price">Lowest Price</option>
-                            <option value="fast_delivery">Fastest Delivery</option>
-                            <option value="best_rating">Best Seller Rating</option>
+                             <option value="low_price" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Lowest Price</option>
+                             <option value="fast_delivery" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Fastest Delivery</option>
+                             <option value="best_rating" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Best Seller Rating</option>
                           </select>
                         </div>
 

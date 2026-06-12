@@ -10,6 +10,7 @@ import CartPage from './pages/CartPage';
 import HelpPage from './pages/HelpPage';
 import ProfilePage from './pages/ProfilePage';
 import TopRatedPage from './pages/TopRatedPage';
+import Footer from './components/layout/Footer';
 
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -44,23 +45,27 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-transparent transition-colors duration-300">
+      <div className="min-h-screen flex flex-col bg-transparent transition-colors duration-300">
         <Toaster position="top-right" />
         
         {isAuthenticated ? (
           <>
             <Navbar onLogout={handleLogout} />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/category/:categoryId" element={<CategoryPage />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/product/:productId" element={<ProductDetailsPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/top-rated" element={<TopRatedPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+            <div className="flex-grow">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/category/:categoryId" element={<CategoryPage />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/product/:category/:subcategory/:productId" element={<ProductDetailsPage />} />
+                <Route path="/product/:productId" element={<ProductDetailsPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/top-rated" element={<TopRatedPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </div>
+            <Footer />
           </>
         ) : (
           <Routes>

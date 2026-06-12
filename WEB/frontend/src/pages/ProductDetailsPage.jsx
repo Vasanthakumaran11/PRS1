@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Star, ShoppingCart, X, CheckCircle, ThumbsUp, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { productAPI, reviewAPI, cartAPI } from '../services/api';
+import { getPlatformBadge, getProductDetailUrl } from '../utils/productUtils';
 
 const ProductDetailsPage = () => {
   const { productId } = useParams();
@@ -93,7 +94,7 @@ const ProductDetailsPage = () => {
     try {
       await cartAPI.add({ productId: product.productId });
       window.dispatchEvent(new Event('cartUpdated'));
-      toast.success(`${product.name} added to cart!`);
+      toast.success(product.name);
     } catch (error) {
       toast.error("Failed to add to cart. Are you logged in?");
     }
@@ -129,11 +130,11 @@ const ProductDetailsPage = () => {
           
           {/* Left: Images */}
           <div className="w-full md:w-1/2 flex flex-col">
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm mb-4 border border-gray-100 dark:border-gray-700 group">
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-gray-950 shadow-sm mb-4 border border-gray-100 dark:border-gray-800 p-6 flex items-center justify-center group">
               <img 
                 src={activeImage} 
                 alt={product.name} 
-                className="w-full h-full object-cover origin-center group-hover:scale-110 transition-transform duration-500 cursor-zoom-in"
+                className="w-full h-full object-contain origin-center group-hover:scale-105 transition-transform duration-500 cursor-zoom-in"
               />
             </div>
             {/* Thumbnails */}
@@ -174,6 +175,7 @@ const ProductDetailsPage = () => {
 
             <div className="text-5xl font-black text-gray-900 dark:text-gray-100 mb-8 inline-flex items-baseline gap-2 tabular-nums tracking-tight">
               ₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0).toLocaleString('en-IN')}
+              {getPlatformBadge(product.productId)}
               {product.mrp && Math.round(product.mrp) > Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0) && (
                 <span className="text-2xl text-gray-400 dark:text-gray-500 line-through ml-3 font-normal">
                   ₹{Math.round(product.mrp).toLocaleString('en-IN')}
@@ -497,7 +499,7 @@ const ProductDetailsPage = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Related products you might like</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {relatedProducts.map(rp => (
-                <Link to={`/product/${rp.id}`} key={rp.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md transition group block">
+                <Link to={getProductDetailUrl(rp)} key={rp.productId || rp.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md transition group block">
                    <div className="aspect-square bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden mb-4">
                      <img src={rp.image} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                    </div>
@@ -534,7 +536,10 @@ const ProductDetailsPage = () => {
           </div>
           
           <div className="hidden sm:flex flex-col items-end mr-4">
-             <span className="text-2xl font-black text-gray-900 dark:text-gray-100 leading-none">₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0)}</span>
+             <span className="text-2xl font-black text-gray-900 dark:text-gray-100 leading-none flex items-center">
+               ₹{Math.round(product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || 0)}
+               {getPlatformBadge(product.productId)}
+             </span>
              <span className="text-xs text-green-600 font-bold uppercase mt-1">In Stock</span>
           </div>
 

@@ -39,17 +39,39 @@ const ProductsPage = () => {
           response = await productAPI.getAll();
         }
 
-        let result = response.data;
+        let result = response.data || [];
         
-        // Apply Sort locally for now as backend sorting is limited
+        // Filter by category if we are searching AND category filter is active in the URL
+        const catFilter = searchParams.get('category');
+        if (search && catFilter && catFilter !== 'all') {
+          result = result.filter(p => p.category && p.category.toLowerCase() === catFilter.toLowerCase());
+        }
+        
+        // Apply Sort locally
         if (sortBy === 'price_asc') {
-          result.sort((a, b) => a.price_amazon - b.price_amazon);
+          result.sort((a, b) => {
+            const pA = a.price_amazon || a.base_price || 0;
+            const pB = b.price_amazon || b.base_price || 0;
+            return pA - pB;
+          });
         } else if (sortBy === 'price_desc') {
-          result.sort((a, b) => b.price_amazon - a.price_amazon);
+          result.sort((a, b) => {
+            const pA = a.price_amazon || a.base_price || 0;
+            const pB = b.price_amazon || b.base_price || 0;
+            return pB - pA;
+          });
         } else if (sortBy === 'top_rated') {
-          result.sort((a, b) => b.avgRating - a.avgRating);
+          result.sort((a, b) => {
+            const rA = a.rating || a.avgRating || 0;
+            const rB = b.rating || b.avgRating || 0;
+            return rB - rA;
+          });
         } else if (sortBy === 'most_reviewed') {
-          result.sort((a, b) => b.reviewCount - a.reviewCount);
+          result.sort((a, b) => {
+            const cA = a.reviewCount || 0;
+            const cB = b.reviewCount || 0;
+            return cB - cA;
+          });
         }
 
         setAllProducts(result);
@@ -62,16 +84,15 @@ const ProductsPage = () => {
     };
 
     fetchData();
-  }, [search, activeTab, sortBy, page]);
+  }, [search, activeTab, sortBy, page, searchParams]);
 
-  // When search parameter changes, reset active tab and query input
+  // Sync state if search/category params in URL change
   useEffect(() => {
     if (search !== query) setQuery(search);
-    if (search) {
-       setActiveTab('all');
-       setPage(1);
-    }
-  }, [search]);
+    const catParam = searchParams.get('category') || 'all';
+    setActiveTab(catParam);
+    setPage(1);
+  }, [search, searchParams]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -122,7 +143,11 @@ const ProductsPage = () => {
               {filterTabs.map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setPage(1); }}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setSearchParams(tab.id === 'all' ? {} : { category: tab.id });
+                    setPage(1);
+                  }}
                   className={`px-4 py-2 whitespace-nowrap rounded-full font-medium text-sm transition-all duration-200 border
                     ${activeTab === tab.id 
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
@@ -144,11 +169,11 @@ const ProductsPage = () => {
               onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
               className="text-sm text-gray-900 dark:text-gray-100 bg-transparent outline-none font-semibold cursor-pointer appearance-none pr-4 w-full sm:w-auto"
             >
-              <option value="default">Relevance</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="top_rated">Top Rated</option>
-              <option value="most_reviewed">Most Reviewed</option>
+              <option value="default" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Relevance</option>
+              <option value="price_asc" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Price: Low to High</option>
+              <option value="price_desc" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Price: High to Low</option>
+              <option value="top_rated" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Top Rated</option>
+              <option value="most_reviewed" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Most Reviewed</option>
             </select>
             <ChevronDown className="absolute right-3 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none" />
           </div>

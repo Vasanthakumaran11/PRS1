@@ -1,19 +1,22 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getProductDetailUrl, getPlatformBadge } from '../utils/productUtils';
 
 const ProductCard = ({ product }) => {
   const price = product.platforms?.amazon?.price || product.price_amazon || product.price_flipkart || product.base_price || 0;
   const rating = product.rating || product.avgRating || 0;
   const reviewCount = product.reviewCount || 0;
   
+  const detailUrl = getProductDetailUrl(product);
+
   return (
-    <Link to={`/product/${product.productId}`} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl hover:border-[#8cc63f]/60 dark:hover:border-[#8cc63f]/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-700/80">
-      <div className="relative aspect-square overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700/80 p-8 flex items-center justify-center">
+    <Link to={detailUrl} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl hover:border-[#8cc63f]/60 dark:hover:border-[#8cc63f]/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-700/80">
+      <div className="relative aspect-square overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700/80 p-4 flex items-center justify-center">
         <img 
           src={product.image} 
           alt={product.name}
-          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply dark:mix-blend-normal"
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
       </div>
       <div className="p-4 flex flex-col flex-grow">
@@ -33,7 +36,10 @@ const ProductCard = ({ product }) => {
         </div>
         
         <div className="flex items-center justify-between">
-          <span className="font-bold text-xl text-gray-900 dark:text-gray-100">₹{Math.round(price)}</span>
+          <span className="font-bold text-xl text-gray-900 dark:text-gray-100 flex items-center">
+            ₹{Math.round(price)}
+            {getPlatformBadge(product.productId)}
+          </span>
         </div>
       </div>
     </Link>

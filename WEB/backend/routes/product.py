@@ -99,14 +99,45 @@ def get_products_by_category(category: str):
 # ---------------------------------------------------------------------------
 @router.get("/search")
 def search_products(query: str = Query(..., min_length=1)):
-    q = query.lower()
-    products = list(products_col().find({
-        "$or": [
-            {"name": {"$regex": q, "$options": "i"}},
-            {"category": {"$regex": q, "$options": "i"}},
-            {"description": {"$regex": q, "$options": "i"}},
-        ]
-    }))
+    q = query.lower().strip()
+    words = [w for w in q.split() if len(w) > 1]
+    if not words:
+        words = [q]
+
+    # Category synonym mapping
+    category_mappings = {
+        "electronics": ["mobile", "phone", "phones", "headphone", "headphones", "electronics", "technology", "gadgets", "laptop", "laptops"],
+        "home": ["furniture", "sofa", "chair", "chairs", "decor", "table", "tables", "home"],
+        "fashion": ["fashion", "clothing", "wear", "clothes", "shoes", "shoe", "kurtas", "kurta", "lifestyle"],
+        "household": ["grocery", "groceries", "household", "essentials", "fruits", "vegetables", "daily", "fresho", "bigbasket"]
+    }
+
+    matched_categories = []
+    for cat, keywords in category_mappings.items():
+        if cat in q or any(kw in q for kw in keywords):
+            matched_categories.append(cat)
+
+    or_conditions = []
+    
+    # 1. Full query regex match
+    or_conditions.extend([
+        {"name": {"$regex": q, "$options": "i"}},
+        {"category": {"$regex": q, "$options": "i"}},
+        {"description": {"$regex": q, "$options": "i"}},
+    ])
+    
+    # 2. Individual word regex matches
+    for w in words:
+        or_conditions.extend([
+            {"name": {"$regex": w, "$options": "i"}},
+            {"description": {"$regex": w, "$options": "i"}},
+        ])
+
+    # 3. Category match
+    for cat in matched_categories:
+        or_conditions.append({"category": cat})
+
+    products = list(products_col().find({"$or": or_conditions}))
     return [serialize_product(p) for p in products]
 
 

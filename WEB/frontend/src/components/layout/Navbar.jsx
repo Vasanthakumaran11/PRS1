@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingCart, Menu, X, Package, User, LogOut, MessageSquare } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, Package, User, LogOut, MessageSquare, Clock, Tag, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import HelpDropdown from './HelpDropdown';
 import GuideModal from './GuideModal';
 import { mockProducts } from '../../data/mockData';
-import { cartAPI, authAPI } from '../../services/api';
+import { cartAPI, authAPI, productAPI } from '../../services/api';
+import { getProductDetailUrl } from '../../utils/productUtils';
 
 const Navbar = ({ onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -117,7 +118,17 @@ const Navbar = ({ onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      const saved = localStorage.getItem('recentSearches');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [focusedSuggestionIndex, setFocusedSuggestionIndex] = useState(-1);
   const [searchResults, setSearchResults] = useState([]);
+
   useEffect(() => {
     const searchTimer = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
@@ -134,13 +145,147 @@ const Navbar = ({ onLogout }) => {
     return () => clearTimeout(searchTimer);
   }, [searchQuery]);
 
-  const handleSearch = (e) => {
+  useEffect(() => {
+    setFocusedSuggestionIndex(-1);
+  }, [searchQuery, searchResults]);
+
+  const saveSearchQuery = (q) => {
+    if (!q || !q.trim()) return;
+    const clean = q.trim();
+    const updated = [clean, ...recentSearches.filter(s => s !== clean)].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
+
+  const deleteRecentSearch = (e, q) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const updated = recentSearches.filter(s => s !== q);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
+
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      saveSearchQuery(searchQuery);
       navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
       setShowSearchResults(false);
       setSearchQuery('');
     }
+  };
+
+  const handleRecentSearchClick = (q) => {
+    saveSearchQuery(q);
+    navigate(`/products?search=${encodeURIComponent(q)}`);
+    setSearchQuery('');
+    setShowSearchResults(false);
+  };
+
+  const categoryNames = {
+    electronics: "Electronics & Technology",
+    home: "Home & Furniture",
+    fashion: "Fashion & Lifestyle",
+    household: "Household & Groceries"
+  };
+
+  const getCategoryForQuery = (q) => {
+    const query = q.toLowerCase();
+    if (['phone', 'mobile', 'laptop', 'headphone', 'earbud', 'tech', 'electronic', 'charger'].some(k => query.includes(k))) return 'electronics';
+    if (['chair', 'sofa', 'table', 'furniture', 'decor', 'bed', 'desk'].some(k => query.includes(k))) return 'home';
+    if (['shoe', 'sneaker', 'shirt', 'dress', 'fashion', 'clothing', 'wear', 'jeans', 'kurta'].some(k => query.includes(k))) return 'fashion';
+    if (['grocery', 'food', 'fruit', 'vegetable', 'milk', 'household', 'basket', 'fresh'].some(k => query.includes(k))) return 'household';
+    return null;
+  };
+
+  const getSuggestionsFlatList = () => {
+    if (!searchQuery.trim()) return [];
+    const list = [];
+    
+    list.push({
+      id: 'search-all',
+      type: 'search',
+      text: searchQuery,
+      category: null,
+      label: `Search for "${searchQuery}" in All Categories`
+    });
+
+    const matchedCat = getCategoryForQuery(searchQuery);
+    if (matchedCat) {
+      list.push({
+        id: `search-${matchedCat}`,
+        type: 'search',
+        text: searchQuery,
+        category: matchedCat,
+        label: `Search for "${searchQuery}" in ${categoryNames[matchedCat] || matchedCat}`
+      });
+    }
+
+    searchResults.forEach(product => {
+      list.push({
+        id: `prod-${product.productId}`,
+        type: 'product',
+        product: product,
+        label: product.name
+      });
+    });
+
+    return list;
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    if (suggestion.type === 'search') {
+      saveSearchQuery(suggestion.text);
+      if (suggestion.category) {
+        navigate(`/products?search=${encodeURIComponent(suggestion.text)}&category=${suggestion.category}`);
+      } else {
+        navigate(`/products?search=${encodeURIComponent(suggestion.text)}`);
+      }
+    } else if (suggestion.type === 'product') {
+      saveSearchQuery(suggestion.product.name);
+      navigate(getProductDetailUrl(suggestion.product));
+    }
+    setSearchQuery('');
+    setShowSearchResults(false);
+    setFocusedSuggestionIndex(-1);
+  };
+
+  const handleKeyDown = (e, suggestions) => {
+    if (!suggestions || suggestions.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedSuggestionIndex((prev) => 
+        prev === suggestions.length - 1 ? 0 : prev + 1
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedSuggestionIndex((prev) => 
+        prev <= 0 ? suggestions.length - 1 : prev - 1
+      );
+    } else if (e.key === 'Enter') {
+      if (focusedSuggestionIndex >= 0 && focusedSuggestionIndex < suggestions.length) {
+        e.preventDefault();
+        handleSelectSuggestion(suggestions[focusedSuggestionIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setShowSearchResults(false);
+      e.target.blur();
+    }
+  };
+
+  const highlightMatch = (text, query) => {
+    if (!query) return <span>{text}</span>;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <span>
+        {parts.map((part, idx) => 
+          part.toLowerCase() === query.toLowerCase() 
+            ? <strong key={idx} className="text-[#004b36] dark:text-[#8cc63f] font-extrabold">{part}</strong> 
+            : part
+        )}
+      </span>
+    );
   };
 
   const handleLogout = () => {
@@ -199,8 +344,8 @@ const Navbar = ({ onLogout }) => {
             </Link>
 
             {/* Search Bar */}
-            <div className="hidden md:block max-w-[400px] w-full relative">
-              <form onSubmit={handleSearch} className="relative">
+            <div className="hidden md:block max-w-[420px] w-full relative">
+              <form onSubmit={handleSearchSubmit} className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
@@ -211,35 +356,153 @@ const Navbar = ({ onLogout }) => {
                     setSearchQuery(e.target.value);
                     setShowSearchResults(true);
                   }}
-                  onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                  className="block w-full pl-9 pr-3 py-2.5 border-none rounded-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#004b36] shadow-inner text-sm transition-all"
+                  onFocus={() => setShowSearchResults(true)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 250)}
+                  onKeyDown={(e) => handleKeyDown(e, getSuggestionsFlatList())}
+                  className="block w-full pl-9 pr-9 py-2.5 border-none rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#004b36] shadow-inner text-sm transition-all"
                   placeholder={t.searchHint}
                 />
                 
-                {/* Search Suggestions Dropdown */}
-                {showSearchResults && searchQuery && (
-                  <div className="absolute top-full mt-1 w-full bg-white dark:bg-gray-800 shadow-xl rounded-md border border-gray-100 dark:border-gray-700 py-2 z-50">
-                    {searchResults.length > 0 ? (
-                      searchResults.map(product => (
-                        <Link
-                          key={product.productId}
-                          to={`/product/${product.productId}`}
-                          className="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 dark:hover:bg-gray-700 transition-colors border-b last:border-0 border-gray-50 dark:border-gray-700"
-                          onClick={() => { setSearchQuery(''); setShowSearchResults(false); }}
-                        >
-                          <div className="w-10 h-10 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden mr-3 flex-shrink-0">
-                            <img src={product.image} alt="" className="w-full h-full object-cover" />
+                {searchQuery && (
+                  <button 
+                    type="button"
+                    onClick={() => { setSearchQuery(''); setSearchResults([]); }}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                
+                {/* Suggestions Dropdown */}
+                {showSearchResults && (
+                  <div className="absolute top-full mt-1.5 w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-2xl rounded-xl border border-gray-150 dark:border-gray-700/80 py-2.5 z-50 max-h-[380px] overflow-y-auto font-sans transition-all animate-in fade-in duration-100">
+                    
+                    {/* Empty Query: History & Categories */}
+                    {!searchQuery.trim() && (
+                      <div>
+                        {recentSearches.length > 0 ? (
+                          <div className="mb-4">
+                            <div className="flex justify-between items-center px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              <span>Recent Searches</span>
+                            </div>
+                            <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                              {recentSearches.map((term, idx) => (
+                                <div
+                                  key={idx}
+                                  onMouseDown={() => handleRecentSearchClick(term)}
+                                  className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-250 transition-colors"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <Clock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    <span className="truncate">{term}</span>
+                                  </div>
+                                  <button
+                                    onMouseDown={(e) => deleteRecentSearch(e, term)}
+                                    className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700/80 transition-colors"
+                                    title="Delete search history item"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{product.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{product.category}</p>
+                        ) : (
+                          <div className="px-4 py-2 text-xs text-gray-400 font-semibold mb-2">Search for products, tech, fashion, or groceries...</div>
+                        )}
+
+                        <div>
+                          <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            Popular Categories
                           </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">No matching products found.</div>
+                          <div className="grid grid-cols-2 gap-2 px-3">
+                            {Object.entries(categoryNames).map(([id, name]) => (
+                              <button
+                                type="button"
+                                key={id}
+                                onMouseDown={() => {
+                                  navigate(`/products?category=${id}`);
+                                  setShowSearchResults(false);
+                                }}
+                                className="px-3 py-2 text-left rounded-lg bg-gray-50 hover:bg-[#004b36]/10 text-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white text-xs font-bold transition-all border border-gray-100 dark:border-gray-800"
+                              >
+                                {name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     )}
+
+                    {/* Loaded Suggestions for Non-Empty Query */}
+                    {searchQuery.trim() && (() => {
+                      const flatList = getSuggestionsFlatList();
+                      if (flatList.length === 0) {
+                        return <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">No matching products found.</div>;
+                      }
+
+                      // Group elements for headings
+                      const searchSuggestions = flatList.filter(s => s.type === 'search');
+                      const productSuggestions = flatList.filter(s => s.type === 'product');
+
+                      return (
+                        <div className="space-y-3">
+                          {/* Search Shortcuts */}
+                          {searchSuggestions.length > 0 && (
+                            <div>
+                              <div className="px-4 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Search Tips</div>
+                              {searchSuggestions.map((suggestion) => {
+                                const idx = flatList.findIndex(item => item.id === suggestion.id);
+                                const isFocused = idx === focusedSuggestionIndex;
+                                return (
+                                  <div
+                                    key={suggestion.id}
+                                    onMouseDown={() => handleSelectSuggestion(suggestion)}
+                                    className={`flex items-center gap-2.5 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer text-sm font-medium transition-all ${isFocused ? 'bg-gray-100 dark:bg-gray-700 border-l-4 border-[#004b36]' : 'border-l-4 border-transparent text-gray-700 dark:text-gray-300'}`}
+                                  >
+                                    <Tag className="w-3.5 h-3.5 text-[#004b36] dark:text-[#8cc63f] flex-shrink-0" />
+                                    <span className="truncate">{suggestion.label}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Matching Products */}
+                          {productSuggestions.length > 0 && (
+                            <div>
+                              <div className="px-4 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Matching Products</div>
+                              <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                                {productSuggestions.map((suggestion) => {
+                                  const idx = flatList.findIndex(item => item.id === suggestion.id);
+                                  const isFocused = idx === focusedSuggestionIndex;
+                                  const p = suggestion.product;
+                                  return (
+                                    <div
+                                      key={suggestion.id}
+                                      onMouseDown={() => handleSelectSuggestion(suggestion)}
+                                      className={`flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-all ${isFocused ? 'bg-gray-100 dark:bg-gray-700 border-l-4 border-[#004b36]' : 'border-l-4 border-transparent'}`}
+                                    >
+                                      <div className="flex items-center min-w-0 mr-3">
+                                        <div className="w-9 h-9 bg-white border border-gray-100 dark:border-gray-700 rounded overflow-hidden mr-3 flex-shrink-0 p-0.5 flex items-center justify-center">
+                                          <img src={p.image} alt="" className="max-h-full max-w-full object-contain" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{highlightMatch(p.name, searchQuery)}</p>
+                                          <p className="text-[10px] text-gray-400 dark:text-gray-500 capitalize">{p.category}</p>
+                                        </div>
+                                      </div>
+                                      <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
                   </div>
                 )}
               </form>

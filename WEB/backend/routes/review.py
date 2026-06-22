@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database import reviews_col, products_col
-from models.review import ReviewCreate, ReviewOut
+from models.review import ReviewCreate, ReviewOut, ReviewUpdate
 from routes.auth import get_current_customer
 
 router = APIRouter(tags=["Reviews"])
@@ -73,7 +73,7 @@ def add_review(
 
     products_col().update_one(
         {"productId": data.productId},
-        {"$set": {"avgRating": new_avg, "reviewCount": new_count, "lastUpdated": datetime.utcnow()}}
+        {"$set": {"avgRating": new_avg, "rating": new_avg, "reviewCount": new_count, "lastUpdated": datetime.utcnow()}}
     )
 
     return {
@@ -95,3 +95,98 @@ def get_reviews(productId: str):
         .sort("timestamp", -1)
     )
     return [serialize_review(r) for r in reviews]
+
+
+# ---------------------------------------------------------------------------
+# PUT /update-review/{reviewId} (JWT Protected)
+# ---------------------------------------------------------------------------
+@router.put("/update-review/{reviewId}", status_code=status.HTTP_200_OK)
+def update_review(
+    reviewId: str,
+    data: ReviewUpdate,
+    current_customer: dict = Depends(get_current_customer)
+):
+    customer_id = current_customer["customerId"]
+
+    review = reviews_col().find_one({"reviewId": reviewId})
+    if not review:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found."
+        )
+
+    if review["customerId"] != customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to edit this review."
+        )
+
+    reviews_col().update_one(
+        {"reviewId": reviewId},
+        {
+            "$set": {
+                "rating": data.rating,
+                "review": data.review,
+                "keyword": data.keyword,
+                "timestamp": datetime.utcnow(),
+            }
+        }
+    )
+
+    product_id = review["productId"]
+    all_reviews = list(reviews_col().find({"productId": product_id}))
+    new_count = len(all_reviews)
+    new_avg = round(sum(r["rating"] for r in all_reviews) / new_count, 2) if new_count > 0 else 0.0
+
+    products_col().update_one(
+        {"productId": product_id},
+        {"$set": {"avgRating": new_avg, "rating": new_avg, "reviewCount": new_count, "lastUpdated": datetime.utcnow()}}
+    )
+
+    return {
+        "message": "Review updated successfully.",
+        "newAvgRating": new_avg,
+        "reviewCount": new_count,
+    }
+
+
+# ---------------------------------------------------------------------------
+# DELETE /delete-review/{reviewId} (JWT Protected)
+# ---------------------------------------------------------------------------
+@router.delete("/delete-review/{reviewId}", status_code=status.HTTP_200_OK)
+def delete_review(
+    reviewId: str,
+    current_customer: dict = Depends(get_current_customer)
+):
+    customer_id = current_customer["customerId"]
+
+    review = reviews_col().find_one({"reviewId": reviewId})
+    if not review:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found."
+        )
+
+    if review["customerId"] != customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to delete this review."
+        )
+
+    reviews_col().delete_one({"reviewId": reviewId})
+
+    product_id = review["productId"]
+    all_reviews = list(reviews_col().find({"productId": product_id}))
+    new_count = len(all_reviews)
+    new_avg = round(sum(r["rating"] for r in all_reviews) / new_count, 2) if new_count > 0 else 0.0
+
+    products_col().update_one(
+        {"productId": product_id},
+        {"$set": {"avgRating": new_avg, "rating": new_avg, "reviewCount": new_count, "lastUpdated": datetime.utcnow()}}
+    )
+
+    return {
+        "message": "Review deleted successfully.",
+        "newAvgRating": new_avg,
+        "reviewCount": new_count,
+    }

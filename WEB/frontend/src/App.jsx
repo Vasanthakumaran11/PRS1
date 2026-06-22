@@ -27,6 +27,12 @@ function App() {
     
     if (token && isAuth) {
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('token');
+      localStorage.removeItem('customerId');
+      localStorage.removeItem('userName');
     }
   }, []);
 

@@ -18,6 +18,31 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle 401 Unauthorized errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Check if it's NOT a login/register request
+      const isAuthRequest = error.config && error.config.url && 
+        (error.config.url.includes('/login') || error.config.url.includes('/register'));
+      
+      if (!isAuthRequest) {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('token');
+        localStorage.removeItem('customerId');
+        localStorage.removeItem('userName');
+        
+        // Redirect to login page if we aren't already there
+        if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authAPI = {
   register: (data) => api.post('/register', data),
   login: (data) => api.post('/login', data),

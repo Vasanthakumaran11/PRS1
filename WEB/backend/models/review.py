@@ -22,3 +22,9 @@ class ReviewOut(BaseModel):
     review: str
     keyword: Optional[str] = None
     timestamp: datetime
+
+
+class ReviewUpdate(BaseModel):
+    rating: float = Field(..., ge=1.0, le=5.0)
+    review: str = Field(..., min_length=1, max_length=2000)
+    keyword: Optional[str] = None

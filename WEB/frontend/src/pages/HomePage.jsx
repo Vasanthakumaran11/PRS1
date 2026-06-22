@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Box, ShieldCheck, Truck, Clock, Package } from 'lucide-react';
+import { ArrowRight, Box, ShieldCheck, Truck, Clock, Package, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { categories, mockProducts } from '../data/mockData';
@@ -73,108 +73,9 @@ const HomePage = () => {
                 See Top Rated
               </button>
             </div>
-
+            {/* Right side hero page  */}
+            <img className = "absolute bottom-0 right-0 w-[700px] h-[500px] object-cover" src="hero_shopping.png" alt="bottom" />
           </div>
-
-          {/* Right Column: Visual illustration */}
-          <div className="lg:col-span-6 w-full relative flex items-center justify-center">
-            <div className="w-full relative max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-2xl overflow-hidden group">
-              {/* Decorative glows */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none"></div>
-              
-              {/* Dashboard Mockup Header */}
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2">Intelligence Compare Engine</span>
-                </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-55 text-green-700 border border-green-200 text-[10px] font-bold dark:bg-green-950/20 dark:border-green-900/50 dark:text-green-400">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Optimal Platform Found
-                </span>
-              </div>
-
-              {/* Product Info Summary */}
-              <div className="flex items-center gap-4 mb-6 bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <div className="w-12 h-12 rounded-xl bg-white border border-slate-150 dark:bg-slate-900 dark:border-slate-800 flex items-center justify-center p-1.5 flex-shrink-0">
-                  <Package className="w-8 h-8 text-teal-600" />
-                </div>
-                <div className="text-left">
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm">Wireless Noise-Cancelling Headphones</h4>
-                  <p className="text-slate-400 text-[11px] font-medium">Premium Electronics • Model H-900</p>
-                </div>
-              </div>
-
-              {/* Side-by-Side Comparison Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                
-                {/* Competitor Card */}
-                <div className="border border-slate-150 dark:border-slate-800/80 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/20 flex flex-col justify-between transition-colors">
-                  <div className="text-left">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Standard Store</span>
-                    <h5 className="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Online Retailer A</h5>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Price</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 line-through">₹24,999</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Shipping</span>
-                        <span className="font-medium text-slate-600 dark:text-slate-400">3-5 Days</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Trust Score</span>
-                        <span className="font-bold text-orange-500">62% Muted</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-center font-bold py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
-                    Not Recommended
-                  </div>
-                </div>
-
-                {/* Revu Optimized Card */}
-                <div className="border border-teal-500/30 dark:border-teal-400/20 rounded-2xl p-4 bg-teal-50/10 dark:bg-teal-950/5 flex flex-col justify-between relative shadow-lg">
-                  {/* Highlight Badge */}
-                  <span className="absolute -top-2.5 right-4 bg-teal-700 text-white font-extrabold text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                    Verified Deal
-                  </span>
-                  <div className="text-left">
-                    <span className="text-[9px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider block mb-1">Optimal Store</span>
-                    <h5 className="font-bold text-teal-700 dark:text-teal-400 text-sm mb-3">Amazon India</h5>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Price</span>
-                        <span className="font-extrabold text-green-600 text-sm">₹21,499</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Shipping</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">Next Day</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Trust Score</span>
-                        <span className="font-extrabold text-green-600 flex items-center gap-0.5">
-                          <CheckCircle className="w-3.5 h-3.5 fill-current text-white dark:text-slate-900 bg-green-500 rounded-full" /> 98%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-center font-bold py-1.5 rounded-lg bg-teal-700 text-white shadow-sm hover:bg-teal-800 cursor-pointer">
-                    Save ₹3,500 Now
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Bottom Insight Section */}
-              <div className="mt-4 text-[10px] bg-slate-50 dark:bg-slate-850 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-slate-500 flex items-center gap-2 text-left">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse flex-shrink-0"></span>
-                <span>Decision Intelligence recommendation: Buy from <strong>Amazon India</strong> for the best price, delivery speed, and review trust.</span>
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
 

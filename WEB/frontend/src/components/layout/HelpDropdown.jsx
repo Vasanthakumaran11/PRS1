@@ -34,7 +34,7 @@ const HelpDropdown = () => {
       <div className="relative" ref={dropdownRef}>
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center font-bold px-3 py-2 transition-colors rounded ${isOpen ? 'bg-black/10 text-white' : 'text-[#004b36] hover:text-white'}`}
+          className={`flex items-center font-bold px-3 py-2 transition-colors rounded ${isOpen ? 'bg-slate-100 dark:bg-white/10 text-teal-700 dark:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-teal-600 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5'}`}
         >
           <span>Help</span>
         </button>
@@ -43,16 +43,16 @@ const HelpDropdown = () => {
           <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-100 dark:border-gray-700 py-1 z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
             <button 
               onClick={showGuide}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-[#8cc63f] flex items-center transition-colors font-medium"
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-teal-600 flex items-center transition-colors font-medium"
             >
-              <BookOpen className="w-4 h-4 mr-3 text-[#8cc63f]" />
+              <BookOpen className="w-4 h-4 mr-3 text-teal-600 dark:text-teal-400" />
               Tutorial Guide
             </button>
             <button 
               onClick={() => openModal('query')}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-[#8cc63f] flex items-center transition-colors font-medium"
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-teal-600 flex items-center transition-colors font-medium"
             >
-              <MessageCircle className="w-4 h-4 mr-3 text-[#004b36]" />
+              <MessageCircle className="w-4 h-4 mr-3 text-teal-600 dark:text-teal-400" />
               Submit Query
             </button>
             <div className="my-1 border-t border-gray-100 dark:border-gray-700"></div>

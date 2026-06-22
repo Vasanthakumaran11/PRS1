@@ -122,7 +122,7 @@ const CartPage = () => {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Your cart is empty</h2>
               <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto text-lg leading-relaxed">Before proceed to checkout you must add some products to your shopping cart.</p>
-              <Link to="/products" className="px-8 py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-sm text-lg">
+              <Link to="/products" className="px-8 py-3.5 bg-teal-700 text-white font-bold rounded-xl hover:bg-teal-800 transition shadow-sm text-lg">
                 Start Shopping
               </Link>
             </div>
@@ -140,7 +140,7 @@ const CartPage = () => {
                   <div className="flex-1 flex flex-col pt-1">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors line-clamp-1">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 hover:text-teal-700 transition-colors line-clamp-1">
                            <Link to={getProductDetailUrl(item)}>{item.name}</Link>
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-0.5">{item.category}</p>
@@ -159,7 +159,7 @@ const CartPage = () => {
                       <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-1">
                          <button 
                            onClick={() => updateQuantity(item.productId, -1)}
-                           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:bg-gray-800 hover:text-blue-600 transition disabled:opacity-50"
+                           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:bg-gray-800 hover:text-teal-600 transition disabled:opacity-50"
                            disabled={item.quantity <= 1}
                          >
                            <Minus className="w-4 h-4" />
@@ -167,7 +167,7 @@ const CartPage = () => {
                          <span className="w-10 text-center font-bold text-gray-900 dark:text-gray-100">{item.quantity}</span>
                          <button 
                            onClick={() => updateQuantity(item.productId, 1)}
-                           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:bg-gray-800 hover:text-blue-600 transition"
+                           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:bg-gray-800 hover:text-teal-600 transition"
                          >
                            <Plus className="w-4 h-4" />
                          </button>
@@ -216,29 +216,29 @@ const CartPage = () => {
                     Optimize Purchase <ArrowRight className="w-5 h-5 ml-2" />
                   </button>
                 ) : (
-                  <div className="bg-blue-50 dark:bg-gray-900 border border-blue-100 dark:border-blue-900 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                  <div className="bg-teal-50/50 dark:bg-slate-900 border border-teal-100 dark:border-teal-900/40 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4">
                     {decisionStage === 1 && (
                       <form onSubmit={getRecommendation}>
-                        <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-2">Smart Decision Engine</h4>
-                        <p className="text-xs text-blue-800 dark:text-blue-300 mb-4">Finding the best platform (Amazon vs competitor platforms) for your primary item.</p>
+                        <h4 className="font-bold text-teal-900 dark:text-teal-100 mb-2">Smart Decision Engine</h4>
+                        <p className="text-xs text-teal-800 dark:text-teal-300 mb-4">Finding the best platform (Amazon vs competitor platforms) for your primary item.</p>
                         
                         <div className="mb-3">
-                          <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Your Budget (₹)</label>
+                          <label className="text-[10px] uppercase font-black text-teal-900 dark:text-teal-200 ml-1">Your Budget (₹)</label>
                           <input 
                             type="number"
                             value={budget}
                             onChange={(e) => setBudget(e.target.value)}
                             placeholder="Available budget..."
-                            className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="w-full px-4 py-3 rounded-lg border border-teal-200 focus:outline-none focus:ring-2 focus:ring-teal-500 mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                           />
                         </div>
 
                         <div className="mb-4">
-                          <label className="text-[10px] uppercase font-black text-blue-900 dark:text-blue-200 ml-1">Priority</label>
+                          <label className="text-[10px] uppercase font-black text-teal-900 dark:text-teal-200 ml-1">Priority</label>
                           <select 
                             value={priority}
                             onChange={(e) => setPriority(e.target.value)}
-                            className="w-full px-4 py-3 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="w-full px-4 py-3 rounded-lg border border-teal-200 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                           >
                              <option value="low_price" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Lowest Price</option>
                              <option value="fast_delivery" className="dark:bg-gray-800 dark:text-gray-100 bg-white text-gray-900">Fastest Delivery</option>
@@ -246,13 +246,13 @@ const CartPage = () => {
                           </select>
                         </div>
 
-                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50">
+                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-teal-700 text-white rounded-lg font-bold hover:bg-teal-800 transition disabled:opacity-50">
                            {isLoading ? 'Analyzing...' : 'Get Decision'}
                         </button>
                         <button 
                            type="button"
                            onClick={() => setShowDecisionBox(false)}
-                           className="w-full py-2 mt-2 text-blue-600 text-xs font-semibold hover:text-blue-800"
+                           className="w-full py-2 mt-2 text-teal-700 text-xs font-semibold hover:text-teal-800"
                         >
                           Cancel
                         </button>
@@ -265,7 +265,7 @@ const CartPage = () => {
                           <ShoppingCart className="w-7 h-7" />
                         </div>
                         <h5 className="font-black text-gray-900 dark:text-white text-lg mb-1">Recommended: {decisionResult.recommendedPlatform}</h5>
-                        <p className="text-2xl font-black text-blue-600 mb-3">₹{Math.round(decisionResult.price).toLocaleString('en-IN')}</p>
+                        <p className="text-2xl font-black text-teal-700 mb-3">₹{Math.round(decisionResult.price).toLocaleString('en-IN')}</p>
                         
                         <p className={`text-xs font-medium mb-6 leading-relaxed p-3 rounded-xl ${decisionResult.budgetSufficient ? 'bg-green-50 text-green-800 border border-green-100' : 'bg-orange-50 text-orange-800 border border-orange-100'}`}>
                           {decisionResult.reason}

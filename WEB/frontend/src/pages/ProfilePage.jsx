@@ -55,11 +55,11 @@ const ProfilePage = () => {
           {/* Left Sidebar: Profile Details */}
           <div className="w-full lg:w-1/3">
             <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] text-center relative overflow-hidden group">
-               <div className="absolute top-4 right-4 text-blue-600 bg-blue-50 p-2 rounded-full cursor-pointer hover:bg-blue-100 transition">
+               <div className="absolute top-4 right-4 text-teal-700 bg-teal-50 p-2 rounded-full cursor-pointer hover:bg-teal-100 transition">
                   <Edit3 className="w-5 h-5" />
                </div>
                
-               <div className="w-32 h-32 mx-auto bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-4xl text-white font-bold mb-6 shadow-md ring-4 ring-blue-50">
+               <div className="w-32 h-32 mx-auto bg-gradient-to-tr from-teal-500 to-teal-750 rounded-full flex items-center justify-center text-4xl text-white font-bold mb-6 shadow-md ring-4 ring-teal-100/50">
                  {user.name.charAt(0)}
                </div>
                

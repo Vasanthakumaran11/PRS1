@@ -124,7 +124,7 @@ const ProductsPage = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name..." 
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm text-sm transition-all"
             />
             <Search className="absolute left-3.5 top-3 h-4 w-4 text-gray-400" />
             <button type="submit" className="absolute right-1.5 top-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 p-1.5 rounded-lg hover:bg-gray-200 transition">
@@ -150,8 +150,8 @@ const ProductsPage = () => {
                   }}
                   className={`px-4 py-2 whitespace-nowrap rounded-full font-medium text-sm transition-all duration-200 border
                     ${activeTab === tab.id 
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 hover:border-gray-300 dark:border-gray-600'
+                      ? 'bg-teal-700 text-white border-teal-700 shadow-sm' 
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                 >
                   {tab.name}
@@ -202,7 +202,7 @@ const ProductsPage = () => {
                 <div className="mt-12 text-center">
                   <button 
                     onClick={loadMore}
-                    className="inline-flex items-center justify-center px-8 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm text-base font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-blue-600 transition-colors"
+                    className="inline-flex items-center justify-center px-8 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm text-base font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-teal-700 transition-colors"
                   >
                     Load More Products
                   </button>
@@ -221,7 +221,7 @@ const ProductsPage = () => {
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">We couldn't find any items matching your current filters. Try adjusting your search query or removing categories.</p>
               <button 
                 onClick={() => { setActiveTab('all'); setSearchParams({}); }}
-                className="mt-6 px-6 py-2.5 bg-blue-50 text-blue-700 font-medium rounded-lg hover:bg-blue-100 transition-colors"
+                className="mt-6 px-6 py-2.5 bg-teal-50 text-teal-700 font-medium rounded-lg hover:bg-teal-100 transition-colors"
               >
                 Clear all filters
               </button>

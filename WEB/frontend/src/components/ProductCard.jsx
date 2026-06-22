@@ -11,7 +11,7 @@ const ProductCard = ({ product }) => {
   const detailUrl = getProductDetailUrl(product);
 
   return (
-    <Link to={detailUrl} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl hover:border-[#8cc63f]/60 dark:hover:border-[#8cc63f]/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-700/80">
+    <Link to={detailUrl} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl hover:border-teal-500/60 dark:hover:border-teal-400/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-700/80">
       <div className="relative aspect-square overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700/80 p-4 flex items-center justify-center">
         <img 
           src={product.image} 

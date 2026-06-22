@@ -115,9 +115,9 @@ const ProductDetailsPage = () => {
       {/* Breadcrumbs */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 mb-6 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-          <Link to="/" className="hover:text-blue-600 transition">Home</Link>
+          <Link to="/" className="hover:text-teal-600 transition">Home</Link>
           <ChevronRight className="w-4 h-4" />
-          <Link to={`/category/${product.category}`} className="hover:text-blue-600 transition capitalize">{product.category}</Link>
+          <Link to={`/category/${product.category}`} className="hover:text-teal-600 transition capitalize">{product.category}</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900 dark:text-gray-100 font-medium">{product.name}</span>
         </div>
@@ -141,7 +141,7 @@ const ProductDetailsPage = () => {
             <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
               <button 
                 onClick={() => setActiveImage(product.image)}
-                className={`w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === product.image ? 'border-blue-600 shadow-md ring-2 ring-blue-100' : 'border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100 hover:border-blue-300'}`}
+                className={`w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === product.image ? 'border-teal-700 shadow-md ring-2 ring-teal-100' : 'border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100 hover:border-teal-300'}`}
               >
                 <img src={product.image} className="w-full h-full object-cover" />
               </button>
@@ -149,7 +149,7 @@ const ProductDetailsPage = () => {
                 <button 
                   key={idx}
                   onClick={() => setActiveImage(thumb)}
-                  className={`w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === thumb ? 'border-blue-600 shadow-md ring-2 ring-blue-100' : 'border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100 hover:border-blue-300'}`}
+                  className={`w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === thumb ? 'border-teal-700 shadow-md ring-2 ring-teal-100' : 'border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100 hover:border-teal-300'}`}
                 >
                   <img src={thumb} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
                 </button>
@@ -168,9 +168,9 @@ const ProductDetailsPage = () => {
                   <Star key={i} className={`w-5 h-5 ${i < Math.floor(product.rating || 0) ? 'fill-current' : 'text-gray-300'}`} />
                 ))}
               </div>
-              <span className="text-lg font-medium text-blue-600">{product.rating || '0'}</span>
+              <span className="text-lg font-medium text-teal-700">{product.rating || '0'}</span>
               <span className="mx-2 text-gray-300">|</span>
-              <a href="#reviews" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 cursor-pointer underline underline-offset-4">{(product.reviewsCount || product.reviewCount || 0)?.toLocaleString()} ratings</a>
+              <a href="#reviews" className="text-gray-500 dark:text-gray-400 hover:text-teal-700 cursor-pointer underline underline-offset-4">{(product.reviewsCount || product.reviewCount || 0)?.toLocaleString()} ratings</a>
             </div>
 
             <div className="text-5xl font-black text-gray-900 dark:text-gray-100 mb-8 inline-flex items-baseline gap-2 tabular-nums tracking-tight">
@@ -199,7 +199,7 @@ const ProductDetailsPage = () => {
                         key={s}
                         type="button"
                         onClick={() => setSelectedSize(s)}
-                        className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold transition-all ${selectedSize === s ? 'border-blue-600 bg-blue-50 text-blue-600 dark:border-blue-500 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900'}`}
+                        className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 font-bold transition-all ${selectedSize === s ? 'border-teal-700 bg-teal-50 text-teal-700 dark:border-teal-500 dark:bg-teal-950/30 dark:text-teal-400 shadow-sm' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900'}`}
                       >
                         {s}
                       </button>
@@ -235,7 +235,7 @@ const ProductDetailsPage = () => {
                 <div className="w-1/3 p-3 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">Source Store</div>
                 <div className="w-2/3 p-3 text-gray-600 dark:text-gray-400">
                   {product.source_url ? (
-                    <a href={product.detail_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <a href={product.detail_link} target="_blank" rel="noopener noreferrer" className="text-teal-700 dark:text-teal-400 hover:underline">
                       {new URL(product.source_url).hostname.replace('www.', '')}
                     </a>
                   ) : 'Local Store'}
@@ -294,13 +294,13 @@ const ProductDetailsPage = () => {
               <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
                 <button 
                   onClick={() => setReviewViewMode('write')}
-                  className="px-8 py-4 bg-[#004b36] text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white transition-all shadow-md text-lg"
+                  className="px-8 py-4 bg-teal-700 text-white font-bold rounded-xl hover:bg-teal-800 dark:bg-teal-700 dark:text-white dark:hover:bg-teal-800 transition-all shadow-md text-lg"
                 >
-                  Write  Review
+                  Write a Review
                 </button>
                 <button 
                   onClick={() => setReviewViewMode('read')}
-                  className="px-8 py-4 bg-white dark:bg-gray-800 text-[#004b36] dark:text-gray-100 border-2 border-[#004b36] dark:border-gray-600 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-lg"
+                  className="px-8 py-4 bg-white dark:bg-gray-800 text-teal-700 dark:text-gray-100 border-2 border-teal-700 dark:border-gray-600 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-all text-lg"
                 >
                   Read All Reviews ({filteredReviews.length})
                 </button>
@@ -348,7 +348,7 @@ const ProductDetailsPage = () => {
                           type="button"
                           key={kw}
                           onClick={() => setReviewKeyword(kw)}
-                          className={`px-8 py-3 rounded-full border-2 text-base font-bold transition-all ${reviewKeyword === kw ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-105' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                          className={`px-8 py-3 rounded-full border-2 text-base font-bold transition-all ${reviewKeyword === kw ? 'bg-teal-700 text-white border-teal-700 shadow-md scale-105' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                         >
                           {kw}
                         </button>
@@ -361,11 +361,11 @@ const ProductDetailsPage = () => {
                     <label className="flex items-start sm:items-center cursor-pointer group mb-1">
                       <input 
                         type="checkbox" 
-                        className="w-6 h-6 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer mt-0.5 sm:mt-0 shadow-sm"
+                        className="w-6 h-6 rounded border-gray-300 text-teal-700 focus:ring-teal-500 cursor-pointer mt-0.5 sm:mt-0 shadow-sm"
                         checked={showDetailedReview}
                         onChange={(e) => setShowDetailedReview(e.target.checked)}
                       />
-                      <span className="ml-4 text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
+                      <span className="ml-4 text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-teal-700 transition-colors">
                         I am ready to provide a detailed review in a sentence or paragraph.
                       </span>
                     </label>
@@ -377,7 +377,7 @@ const ProductDetailsPage = () => {
                           value={reviewText}
                           onChange={(e) => setReviewText(e.target.value)}
                           rows="8" 
-                          className="w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl px-5 py-5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none text-base text-gray-900 dark:text-gray-100 shadow-inner"
+                          className="w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl px-5 py-5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all resize-none text-base text-gray-900 dark:text-gray-100 shadow-inner"
                           placeholder="Write your honest detailed review here. Be highly descriptive about what you liked or disliked. Your original input acts as crucial guidance for thousands of daily purchasers!"
                         />
                       </div>
@@ -388,7 +388,7 @@ const ProductDetailsPage = () => {
                     <button type="button" onClick={() => setReviewViewMode('summary')} className="px-8 py-4 bg-transparent border-2 border-gray-300 dark:border-gray-600 font-bold rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-lg">
                       Cancel
                     </button>
-                    <button type="submit" className="flex-1 py-4 bg-[#004b36] text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white transition-all shadow-md text-lg flex justify-center items-center">
+                    <button type="submit" className="flex-1 py-4 bg-teal-700 text-white font-bold rounded-xl hover:bg-teal-800 dark:bg-gray-150 dark:text-gray-900 dark:hover:bg-white transition-all shadow-md text-lg flex justify-center items-center">
                       Submit Review <CheckCircle className="ml-2 w-6 h-6" />
                     </button>
                   </div>
@@ -410,7 +410,7 @@ const ProductDetailsPage = () => {
                      <p className="text-gray-500 dark:text-gray-400 mt-1">Read what others have to say.</p>
                    </div>
                  </div>
-                 <button onClick={() => setReviewViewMode('write')} className="px-6 py-3 bg-[#004b36] text-white font-bold rounded-xl hover:bg-[#1a2b22] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white transition-all shadow-md">
+                 <button onClick={() => setReviewViewMode('write')} className="px-6 py-3 bg-teal-700 text-white font-bold rounded-xl hover:bg-teal-800 dark:bg-teal-700 dark:text-white dark:hover:bg-teal-800 transition-all shadow-md">
                     Add Review
                  </button>
                </div>
@@ -422,7 +422,7 @@ const ProductDetailsPage = () => {
                    <button 
                      key={val}
                      onClick={() => setReviewFilter(val)}
-                     className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${reviewFilter === val ? 'bg-[#004b36] text-white dark:bg-gray-100 dark:text-gray-900 shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                     className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${reviewFilter === val ? 'bg-teal-700 text-white dark:bg-gray-100 dark:text-gray-900 shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                    >
                      {val === 'All' ? 'All Reviews' : `${val} Stars`}
                    </button>
@@ -470,7 +470,7 @@ const ProductDetailsPage = () => {
                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-base lg:text-lg">{review.review || review.text || 'No text provided'}</p>
                      
                      <div className="flex items-center gap-5 pt-2">
-                        <button className="flex items-center text-sm text-gray-600 dark:text-gray-400 font-bold hover:text-blue-600 dark:hover:text-blue-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0 shadow-sm">
+                        <button className="flex items-center text-sm text-gray-600 dark:text-gray-400 font-bold hover:text-teal-700 dark:hover:text-teal-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0 shadow-sm">
                            <ThumbsUp className="w-4 h-4 mr-2" /> Helpful (12)
                         </button>
                         <span className="text-sm font-semibold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-5 cursor-pointer hover:text-red-500 dark:hover:text-red-400 transition-colors">Report</span>
@@ -479,7 +479,7 @@ const ProductDetailsPage = () => {
                  )) : (
                    <div className="py-20 text-center bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-3xl">
                      <p className="text-gray-500 dark:text-gray-400 font-bold mb-4 text-xl">No reviews matching this specific filter.</p>
-                     <button onClick={() => setReviewFilter('All')} className="text-[#004b36] dark:text-[#8cc63f] font-bold hover:underline">Clear Filters</button>
+                     <button onClick={() => setReviewFilter('All')} className="text-teal-700 dark:text-teal-400 font-bold hover:underline">Clear Filters</button>
                    </div>
                  )}
                </div>

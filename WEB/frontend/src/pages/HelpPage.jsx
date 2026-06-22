@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Info, MapPin, CreditCard, RotateCcw, Box, ArrowRight, MessageSquare, Plus, Minus } from 'lucide-react';
+import { Search, Info, MapPin, CreditCard, RotateCcw, Box, ArrowRight, MessageSquare, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
@@ -31,18 +31,18 @@ const HelpPage = () => {
    };
 
    return (
-     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 pb-24">
+     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pt-20 pb-24">
        
        {/* Support Header */}
-       <div className="bg-blue-600 text-white py-16 px-4">
+       <div className="bg-gradient-to-r from-teal-800 to-teal-700 text-white py-16 px-4">
          <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl font-extrabold mb-6 tracking-tight">How can we help you?</h1>
             <div className="relative max-w-2xl mx-auto">
-               <Search className="absolute left-4 top-3.5 h-6 w-6 text-gray-400" />
+               <Search className="absolute left-4 top-3.5 h-6 w-6 text-slate-400" />
                <input 
                  type="text" 
                  placeholder="Search for articles, queries, or topics..." 
-                 className="w-full pl-12 pr-4 py-4 rounded-xl text-gray-900 dark:text-gray-100 border-0 focus:ring-4 focus:ring-blue-300 shadow-lg text-lg outline-none"
+                 className="w-full pl-12 pr-4 py-4 rounded-xl text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 shadow-lg text-lg outline-none transition-all"
                />
             </div>
          </div>
@@ -52,25 +52,25 @@ const HelpPage = () => {
           
           {/* Quick Find Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition duration-300 cursor-pointer">
-              <Box className="w-8 h-8 text-blue-600 mb-4" />
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">Getting Started</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Learn how to navigate and find things.</p>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-105/80 dark:border-slate-700/80 hover:-translate-y-1 transition duration-300 cursor-pointer">
+              <Box className="w-8 h-8 text-teal-600 mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-2">Getting Started</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Learn how to navigate and find things.</p>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition duration-300 cursor-pointer">
-              <MessageSquare className="w-8 h-8 text-green-600 mb-4" />
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">Adding Reviews</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">How to write, read, and manage reviews.</p>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-105/80 dark:border-slate-700/80 hover:-translate-y-1 transition duration-300 cursor-pointer">
+              <MessageSquare className="w-8 h-8 text-teal-600 mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-2">Adding Reviews</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">How to write, read, and manage reviews.</p>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition duration-300 cursor-pointer">
-              <Search className="w-8 h-8 text-purple-600 mb-4" />
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">Searching Products</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Advanced filtering and finding items.</p>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-105/80 dark:border-slate-700/80 hover:-translate-y-1 transition duration-300 cursor-pointer">
+              <Search className="w-8 h-8 text-teal-600 mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-2">Searching Products</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Advanced filtering and finding items.</p>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition duration-300 cursor-pointer">
-              <ShoppingCart className="w-8 h-8 text-orange-600 mb-4" />
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">Managing Cart</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Adding, removing, and platform suggestions.</p>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-105/80 dark:border-slate-700/80 hover:-translate-y-1 transition duration-300 cursor-pointer">
+              <ShoppingCart className="w-8 h-8 text-teal-600 mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-2">Managing Cart</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Adding, removing, and platform suggestions.</p>
             </div>
           </div>
 
@@ -78,19 +78,19 @@ const HelpPage = () => {
             
             {/* Left Col: FAQ & Contact */}
             <div className="w-full lg:w-2/3">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Frequently Asked Questions</h2>
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-12 overflow-hidden">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Frequently Asked Questions</h2>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/80 mb-12 overflow-hidden">
                 {faqs.map((faq, index) => (
-                  <div key={index} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                  <div key={index} className="border-b border-slate-100 dark:border-slate-700 last:border-0">
                     <button 
                       onClick={() => toggleAccordion(index)}
-                      className="w-full flex justify-between items-center p-6 text-left focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                      className="w-full flex justify-between items-center p-6 text-left focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
                     >
-                      <span className="font-medium text-gray-900 dark:text-gray-100 text-lg">{faq.q}</span>
-                      {activeAccordion === index ? <Minus className="text-blue-600 flex-shrink-0" /> : <Plus className="text-gray-400 flex-shrink-0" />}
+                      <span className="font-medium text-slate-900 dark:text-slate-100 text-lg">{faq.q}</span>
+                      {activeAccordion === index ? <Minus className="text-teal-600 flex-shrink-0" /> : <Plus className="text-slate-400 flex-shrink-0" />}
                     </button>
                     {activeAccordion === index && (
-                      <div className="px-6 pb-6 text-gray-600 dark:text-gray-400 text-base leading-relaxed animate-in fade-in">
+                      <div className="px-6 pb-6 text-slate-600 dark:text-slate-400 text-base leading-relaxed animate-in fade-in">
                         {faq.a}
                       </div>
                     )}
@@ -99,29 +99,29 @@ const HelpPage = () => {
               </div>
 
               {/* Contact Form */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
-                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Still need help?</h2>
-                 <p className="text-gray-500 dark:text-gray-400 mb-6">Send us a message and we'll get back to you within 24 hours.</p>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/80 p-8">
+                 <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Still need help?</h2>
+                 <p className="text-slate-500 dark:text-slate-400 mb-6">Send us a message and we'll get back to you within 24 hours.</p>
                  <form onSubmit={handleContactSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
-                        <select className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
+                        <select className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                           <option>General Inquiry</option>
                           <option>Report a Bug</option>
                           <option>Account Issue</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Email</label>
-                        <input type="email" required placeholder="name@example.com" className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800" />
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Your Email</label>
+                        <input type="email" required placeholder="name@example.com" className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message Description</label>
-                      <textarea rows="5" required placeholder="Describe what you need help with..." className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 resize-none"></textarea>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Message Description</label>
+                      <textarea rows="5" required placeholder="Describe what you need help with..." className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 resize-none"></textarea>
                     </div>
-                    <button type="submit" className="px-8 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-sm">
+                    <button type="submit" className="px-8 py-3 bg-teal-700 text-white font-semibold rounded-xl hover:bg-teal-800 transition shadow-sm">
                       Submit Ticket
                     </button>
                  </form>
@@ -131,12 +131,12 @@ const HelpPage = () => {
 
             {/* Right Col: Common Queries */}
             <div className="w-full lg:w-1/3">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sticky top-24">
-                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">Common Queries</h3>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/80 p-6 sticky top-24">
+                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">Common Queries</h3>
                  <ul className="space-y-4">
                    {commonQueries.map((query, i) => (
                      <li key={i}>
-                       <Link to={query.href} className="flex items-center text-blue-600 hover:text-blue-800 font-medium group transition">
+                       <Link to={query.href} className="flex items-center text-teal-600 hover:text-teal-700 font-medium group transition">
                           <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
                           {query.text}
                        </Link>
@@ -144,10 +144,10 @@ const HelpPage = () => {
                    ))}
                  </ul>
                  
-                 <div className="mt-8 bg-blue-50 p-6 rounded-xl border border-blue-100">
-                    <Info className="w-8 h-8 text-blue-600 mb-3" />
-                    <h4 className="font-bold text-blue-900 mb-1">Did you know?</h4>
-                    <p className="text-sm text-blue-800">You can also hit "Guide" in the Navbar Help dropdown to see an instant overlay guide on how to navigate the app.</p>
+                 <div className="mt-8 bg-teal-50/50 dark:bg-teal-950/20 p-6 rounded-xl border border-teal-100/50 dark:border-teal-900/30">
+                    <Info className="w-8 h-8 text-teal-600 dark:text-teal-400 mb-3" />
+                    <h4 className="font-bold text-teal-950 dark:text-teal-100 mb-1">Did you know?</h4>
+                    <p className="text-sm text-teal-900/80 dark:text-teal-200/80">You can also hit "Guide" in the Navbar Help dropdown to see an instant overlay guide on how to navigate the app.</p>
                  </div>
               </div>
             </div>

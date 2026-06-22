@@ -33,15 +33,15 @@ const QueriesModal = ({ isOpen, onClose, defaultType = 'query' }) => {
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6">
           {defaultType === 'issue' ? 'Report an Issue' : 'Ask Your Query'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {defaultType === 'query' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-              <select className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white dark:bg-gray-800">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+              <select className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all appearance-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                 <option>General Inquiry</option>
                 <option>Orders & Shipping</option>
                 <option>Returns & Refunds</option>
@@ -50,24 +50,24 @@ const QueriesModal = ({ isOpen, onClose, defaultType = 'query' }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
             <input 
               name="subject"
               type="text" 
               required
               placeholder="Briefly describe your issue"
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Message</label>
             <textarea 
               name="message"
               required
               rows={4}
               placeholder="Provide more details..."
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             />
           </div>
 
@@ -75,13 +75,13 @@ const QueriesModal = ({ isOpen, onClose, defaultType = 'query' }) => {
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+              className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
+              className="flex-1 px-4 py-2 bg-teal-700 text-white rounded-lg font-medium hover:bg-teal-800 transition-colors shadow-sm"
             >
               Submit
             </button>

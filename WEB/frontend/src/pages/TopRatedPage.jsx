@@ -68,7 +68,7 @@ const TopRatedPage = () => {
               return (
                 <section key={category.id} className="bg-white dark:bg-gray-800 rounded-3xl p-6 sm:p-8 border border-gray-150 dark:border-gray-700/80 shadow-sm">
                   <div className="flex items-center gap-2 mb-6 pb-3 border-b border-gray-100 dark:border-gray-700">
-                    <Award className="w-6 h-6 text-[#004b36] dark:text-[#8cc63f]" />
+                    <Award className="w-6 h-6 text-teal-600 dark:text-teal-400" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">{category.name}</h2>
                   </div>
                   

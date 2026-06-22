@@ -281,7 +281,7 @@ const Navbar = ({ onLogout }) => {
       <span>
         {parts.map((part, idx) => 
           part.toLowerCase() === query.toLowerCase() 
-            ? <strong key={idx} className="text-[#004b36] dark:text-[#8cc63f] font-extrabold">{part}</strong> 
+            ? <strong key={idx} className="text-teal-700 dark:text-teal-400 font-extrabold">{part}</strong> 
             : part
         )}
       </span>
@@ -316,7 +316,7 @@ const Navbar = ({ onLogout }) => {
     return (
       <Link 
         to={to} 
-        className={`font-bold transition-colors px-3 py-2 flex items-center rounded ${active ? 'text-white bg-[#004b36] dark:bg-white/10 dark:text-white' : 'text-[#004b36] hover:bg-[#004b36]/10 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5'} ${className}`}
+        className={`font-bold transition-colors px-3 py-2 flex items-center rounded ${active ? 'text-teal-750 bg-teal-55/70 dark:bg-teal-95/30 dark:text-teal-400' : 'text-slate-700 hover:text-teal-600 dark:text-gray-350 dark:hover:text-teal-400'} ${className}`}
       >
         {children}
       </Link>
@@ -324,7 +324,7 @@ const Navbar = ({ onLogout }) => {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-[#bdf584] dark:bg-gray-900 border-b border-[#004b36]/15 dark:border-white/10 transition-colors duration-300 z-50 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+    <nav className="fixed top-0 w-full bg-white/80 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-100 dark:border-white/10 transition-colors duration-300 z-50 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-[72px]">
           
@@ -338,8 +338,8 @@ const Navbar = ({ onLogout }) => {
                 className="w-10 h-10 object-contain" 
               />
               <div className="flex flex-col">
-                <span className="font-bold text-2xl leading-none uppercase tracking-tight text-[#004b36] dark:text-[#fbfefd]">Revu</span>
-                <span className="text-[10px] font-bold tracking-widest text-[#004b36] dark:text-[#fbfefd]">.com.au</span>
+                <span className="font-bold text-2xl leading-none uppercase tracking-tight text-slate-850 dark:text-white">Revu</span>
+                <span className="text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-500">.com.au</span>
               </div>
             </Link>
 
@@ -359,7 +359,7 @@ const Navbar = ({ onLogout }) => {
                   onFocus={() => setShowSearchResults(true)}
                   onBlur={() => setTimeout(() => setShowSearchResults(false), 250)}
                   onKeyDown={(e) => handleKeyDown(e, getSuggestionsFlatList())}
-                  className="block w-full pl-9 pr-9 py-2.5 border-none rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#004b36] shadow-inner text-sm transition-all"
+                  className="block w-full pl-9 pr-9 py-2.5 border border-slate-200 dark:border-slate-700/80 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-150 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-sm transition-all"
                   placeholder={t.searchHint}
                 />
                 
@@ -424,7 +424,7 @@ const Navbar = ({ onLogout }) => {
                                   navigate(`/products?category=${id}`);
                                   setShowSearchResults(false);
                                 }}
-                                className="px-3 py-2 text-left rounded-lg bg-gray-50 hover:bg-[#004b36]/10 text-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white text-xs font-bold transition-all border border-gray-100 dark:border-gray-800"
+                                className="px-3 py-2 text-left rounded-lg bg-slate-50 hover:bg-teal-50 hover:text-teal-700 dark:bg-slate-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-teal-400 text-xs font-bold transition-all border border-slate-100 dark:border-slate-800"
                               >
                                 {name}
                               </button>
@@ -458,9 +458,9 @@ const Navbar = ({ onLogout }) => {
                                   <div
                                     key={suggestion.id}
                                     onMouseDown={() => handleSelectSuggestion(suggestion)}
-                                    className={`flex items-center gap-2.5 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer text-sm font-medium transition-all ${isFocused ? 'bg-gray-100 dark:bg-gray-700 border-l-4 border-[#004b36]' : 'border-l-4 border-transparent text-gray-700 dark:text-gray-300'}`}
+                                    className={`flex items-center gap-2.5 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer text-sm font-medium transition-all ${isFocused ? 'bg-slate-100 dark:bg-gray-700 border-l-4 border-teal-600' : 'border-l-4 border-transparent text-gray-700 dark:text-gray-300'}`}
                                   >
-                                    <Tag className="w-3.5 h-3.5 text-[#004b36] dark:text-[#8cc63f] flex-shrink-0" />
+                                    <Tag className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 flex-shrink-0" />
                                     <span className="truncate">{suggestion.label}</span>
                                   </div>
                                 );
@@ -481,7 +481,7 @@ const Navbar = ({ onLogout }) => {
                                     <div
                                       key={suggestion.id}
                                       onMouseDown={() => handleSelectSuggestion(suggestion)}
-                                      className={`flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-all ${isFocused ? 'bg-gray-100 dark:bg-gray-700 border-l-4 border-[#004b36]' : 'border-l-4 border-transparent'}`}
+                                      className={`flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-all ${isFocused ? 'bg-slate-100 dark:bg-gray-700 border-l-4 border-teal-600' : 'border-l-4 border-transparent'}`}
                                     >
                                       <div className="flex items-center min-w-0 mr-3">
                                         <div className="w-9 h-9 bg-white border border-gray-100 dark:border-gray-700 rounded overflow-hidden mr-3 flex-shrink-0 p-0.5 flex items-center justify-center">
@@ -514,7 +514,7 @@ const Navbar = ({ onLogout }) => {
             <NavLinkItem to="/products">{t.products}</NavLinkItem>
             <NavLinkItem to="/top-rated">{t.topRated}</NavLinkItem>
             <div className="relative group flex items-center h-full">
-              <Link to="/cart" className="font-bold text-[#004b36] hover:text-[#1a2b22] dark:text-gray-300 dark:hover:text-white transition-colors px-3 py-2 flex items-center relative">
+              <Link to="/cart" className="font-bold text-slate-700 hover:text-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-colors px-3 py-2 flex items-center relative">
                 {t.cart}
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-4 h-4 text-center rounded-full leading-[16px]">
@@ -527,16 +527,16 @@ const Navbar = ({ onLogout }) => {
             <HelpDropdown />
 
             {/* Vertical Divider */}
-            <div className="w-px h-6 bg-[#004b36]/20 mx-3"></div>
+            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-3"></div>
 
             <div className="flex items-center gap-4 relative" ref={profileRef}>
               {isLoggedIn ? (
                 <>
                   <button 
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-2 text-[#004b36] dark:text-gray-300 font-bold hover:text-[#1a2b22] dark:hover:text-white transition-colors"
+                    className="flex items-center gap-2 text-slate-700 dark:text-gray-300 font-bold hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                   >
-                    <div className="w-8 h-8 rounded-full bg-[#004b36] text-white flex items-center justify-center border border-white/20 shadow-sm text-sm">
+                    <div className="w-8 h-8 rounded-full bg-teal-700 text-white flex items-center justify-center border border-white/20 shadow-sm text-sm">
                        {userName.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline-block">{userName}</span>
@@ -553,20 +553,20 @@ const Navbar = ({ onLogout }) => {
                         <p className="text-xs font-bold text-gray-400 uppercase mb-2">{t.themeLabel}</p>
                         <div className="flex items-center gap-3 mb-4">
                           <label className="flex items-center text-sm cursor-pointer">
-                            <input type="radio" name="theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} className="mr-1.5 accent-[#8cc63f]" /> Light
+                            <input type="radio" name="theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} className="mr-1.5 accent-teal-700" /> Light
                           </label>
                           <label className="flex items-center text-sm cursor-pointer">
-                            <input type="radio" name="theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} className="mr-1.5 accent-[#8cc63f]" /> Dark
+                            <input type="radio" name="theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} className="mr-1.5 accent-teal-700" /> Dark
                           </label>
                         </div>
 
                         <p className="text-xs font-bold text-gray-400 uppercase mb-2">{t.langLabel}</p>
                         <div className="flex flex-col gap-2 mb-2">
                           <label className="flex items-center text-sm cursor-pointer">
-                            <input type="radio" name="language" value="en" checked={language === 'en'} onChange={() => handleLangChange('en')} className="mr-1.5 accent-[#8cc63f]" /> English
+                            <input type="radio" name="language" value="en" checked={language === 'en'} onChange={() => handleLangChange('en')} className="mr-1.5 accent-teal-700" /> English
                           </label>
                           <label className="flex items-center text-sm cursor-pointer">
-                            <input type="radio" name="language" value="ta" checked={language === 'ta'} onChange={() => handleLangChange('ta')} className="mr-1.5 accent-[#8cc63f]" /> Tamil (தமிழ்)
+                            <input type="radio" name="language" value="ta" checked={language === 'ta'} onChange={() => handleLangChange('ta')} className="mr-1.5 accent-teal-700" /> Tamil (தமிழ்)
                           </label>
                         </div>
                       </div>
@@ -578,14 +578,14 @@ const Navbar = ({ onLogout }) => {
                   )}
                 </>
               ) : (
-                <button onClick={handleLogin} className="text-[#004b36] dark:text-gray-300 font-bold hover:text-[#1a2b22] dark:hover:text-white transition-colors">
+                <button onClick={handleLogin} className="text-slate-700 dark:text-gray-300 font-bold hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
                   {t.signIn}
                 </button>
               )}
               
               <Link 
                 to="/products" 
-                className="px-5 py-2.5 bg-[#004b36] text-white font-bold rounded-sm hover:bg-[#003828] shadow-md transition-colors text-sm flex items-center whitespace-nowrap"
+                className="px-5 py-2.5 bg-teal-700 text-white font-bold rounded-xl hover:bg-teal-800 shadow-md transition-colors text-sm flex items-center whitespace-nowrap"
               >
                 {t.writeReview}
               </Link>
@@ -594,7 +594,7 @@ const Navbar = ({ onLogout }) => {
 
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center gap-4 ml-auto">
-            <Link to="/cart" className="relative text-[#004b36] dark:text-gray-300 hover:text-white p-2">
+            <Link to="/cart" className="relative text-slate-700 dark:text-gray-300 hover:text-teal-600 p-2">
               <ShoppingCart className="w-6 h-6" />
               {cartCount > 0 && (
                 <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -604,7 +604,7 @@ const Navbar = ({ onLogout }) => {
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-[#004b36] hover:text-white focus:outline-none p-2"
+              className="text-slate-700 hover:text-teal-600 focus:outline-none p-2"
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -617,26 +617,26 @@ const Navbar = ({ onLogout }) => {
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-white dark:bg-gray-800 shadow-xl pb-6 border-t border-gray-100 dark:border-gray-700">
           <div className="px-4 pt-4 pb-2">
-            <form onSubmit={handleSearch} className="mb-4">
+            <form onSubmit={handleSearchSubmit} className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:border-[#8cc63f]"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:border-teal-500 focus:ring-teal-500"
                   placeholder={t.searchHint}
                 />
               </div>
             </form>
             <div className="flex flex-col space-y-1">
-              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/') ? 'bg-[#8cc63f]/10 text-[#004b36]' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>{t.home}</Link>
-              <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/products') ? 'bg-[#8cc63f]/10 text-[#004b36]' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>{t.products}</Link>
-              <Link to="/top-rated" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/top-rated') ? 'bg-[#8cc63f]/10 text-[#004b36]' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>{t.topRated}</Link>
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/') ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>{t.home}</Link>
+              <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/products') ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>{t.products}</Link>
+              <Link to="/top-rated" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/top-rated') ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>{t.topRated}</Link>
               
               <div className="h-px bg-gray-100 dark:bg-gray-800 my-2"></div>
               
-              <Link to="/help" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/help') ? 'bg-[#8cc63f]/10 text-[#004b36]' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>Help Center / உதவி</Link>
+              <Link to="/help" onClick={() => setIsMobileMenuOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-colors ${isActive('/help') ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900'}`}>Help Center / உதவி</Link>
               <button onClick={() => { setIsMobileMenuOpen(false); setGuideOpen(true); }} className="w-full text-left px-4 py-3 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                 Guide Tutorial
               </button>
@@ -654,20 +654,20 @@ const Navbar = ({ onLogout }) => {
                     <p className="text-xs font-bold text-gray-400 uppercase mb-2">{t.themeLabel}</p>
                     <div className="flex items-center gap-4 mb-4">
                       <label className="flex items-center text-sm cursor-pointer text-gray-700 dark:text-gray-300">
-                        <input type="radio" name="mobile_theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} className="mr-1.5 accent-[#8cc63f]" /> Light
+                        <input type="radio" name="mobile_theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} className="mr-1.5 accent-teal-700" /> Light
                       </label>
                       <label className="flex items-center text-sm cursor-pointer text-gray-700 dark:text-gray-300">
-                        <input type="radio" name="mobile_theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} className="mr-1.5 accent-[#8cc63f]" /> Dark
+                        <input type="radio" name="mobile_theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} className="mr-1.5 accent-teal-700" /> Dark
                       </label>
                     </div>
                     
                     <p className="text-xs font-bold text-gray-400 uppercase mb-2">{t.langLabel}</p>
                     <div className="flex flex-col gap-2">
                       <label className="flex items-center text-sm cursor-pointer text-gray-700 dark:text-gray-300">
-                        <input type="radio" name="mobile_language" value="en" checked={language === 'en'} onChange={() => handleLangChange('en')} className="mr-1.5 accent-[#8cc63f]" /> English
+                        <input type="radio" name="mobile_language" value="en" checked={language === 'en'} onChange={() => handleLangChange('en')} className="mr-1.5 accent-teal-700" /> English
                       </label>
                       <label className="flex items-center text-sm cursor-pointer text-gray-700 dark:text-gray-300">
-                        <input type="radio" name="mobile_language" value="ta" checked={language === 'ta'} onChange={() => handleLangChange('ta')} className="mr-1.5 accent-[#8cc63f]" /> Tamil (தமிழ்)
+                        <input type="radio" name="mobile_language" value="ta" checked={language === 'ta'} onChange={() => handleLangChange('ta')} className="mr-1.5 accent-teal-700" /> Tamil (தமிழ்)
                       </label>
                     </div>
                   </div>
@@ -678,7 +678,7 @@ const Navbar = ({ onLogout }) => {
                   <Link 
                     to="/products" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center px-4 py-3 bg-[#004b36] text-white rounded-lg font-bold shadow-sm mt-2 flex items-center justify-center gap-2"
+                    className="w-full text-center px-4 py-3 bg-teal-700 text-white rounded-lg font-bold shadow-sm mt-2 flex items-center justify-center gap-2 hover:bg-teal-800"
                   >
                     <MessageSquare className="w-4 h-4" /> {t.writeReview}
                   </Link>
@@ -691,7 +691,7 @@ const Navbar = ({ onLogout }) => {
                   <Link 
                     to="/products" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center px-4 py-3 bg-[#004b36] text-white rounded-lg font-bold shadow-sm mt-2"
+                    className="w-full text-center px-4 py-3 bg-teal-700 text-white rounded-lg font-bold shadow-sm mt-2 hover:bg-teal-800"
                   >
                     {t.writeReview}
                   </Link>

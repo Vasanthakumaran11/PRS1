@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { productAPI, cartAPI, decisionAPI } from '../services/api';
+import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
+import { productAPI, cartAPI, decisionAPI, wishlistAPI } from '../services/api';
 import { getProductDetailUrl, getPlatformBadge } from '../utils/productUtils';
 import ProductCard from '../components/ProductCard';
 import { mockProducts } from '../data/mockData';
@@ -15,8 +15,19 @@ const CartPage = () => {
   const [budget, setBudget] = useState('');
   const [decisionResult, setDecisionResult] = useState(null);
   const [priority, setPriority] = useState('low_price');
+  const [wishlistItems, setWishlistItems] = useState([]);
 
   const customerId = localStorage.getItem('customerId');
+
+  const fetchWishlist = async () => {
+    if (!customerId) return;
+    try {
+      const response = await wishlistAPI.get();
+      setWishlistItems(response.data.items || []);
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+    }
+  };
 
   const fetchCart = async () => {
     if (!customerId) return;
@@ -34,6 +45,7 @@ const CartPage = () => {
 
   useEffect(() => {
     fetchCart();
+    fetchWishlist();
   }, [customerId]);
 
   const removeItem = async (productId) => {
@@ -44,6 +56,42 @@ const CartPage = () => {
       toast.success(`Item removed from cart`);
     } catch (error) {
       toast.error("Failed to remove item.");
+    }
+  };
+
+  const moveToWishlist = async (productId) => {
+    try {
+      await wishlistAPI.add({ productId });
+      await cartAPI.remove({ productId });
+      setCartItems(cartItems.filter(item => item.productId !== productId));
+      window.dispatchEvent(new Event('cartUpdated'));
+      toast.success("Moved to wishlist!");
+      fetchWishlist();
+    } catch (error) {
+      toast.error("Failed to move to wishlist.");
+    }
+  };
+
+  const moveFromWishlistToCart = async (productId) => {
+    try {
+      await cartAPI.add({ productId });
+      await wishlistAPI.remove(productId);
+      window.dispatchEvent(new Event('cartUpdated'));
+      toast.success("Moved to cart!");
+      fetchCart();
+      fetchWishlist();
+    } catch (error) {
+      toast.error("Failed to move to cart.");
+    }
+  };
+
+  const removeFromWishlist = async (productId) => {
+    try {
+      await wishlistAPI.remove(productId);
+      setWishlistItems(wishlistItems.filter(item => item.productId !== productId));
+      toast.success("Removed from wishlist");
+    } catch (error) {
+      toast.error("Failed to remove from wishlist.");
     }
   };
 
@@ -145,13 +193,22 @@ const CartPage = () => {
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-0.5">{item.category}</p>
                       </div>
-                      <button 
-                        onClick={() => removeItem(item.productId)}
-                        className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition"
-                        title="Remove item"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => moveToWishlist(item.productId)}
+                          className="text-gray-400 hover:text-teal-700 p-2 hover:bg-teal-50 dark:hover:bg-teal-950/30 rounded-lg transition"
+                          title="Move to Wishlist"
+                        >
+                          <Heart className="w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={() => removeItem(item.productId)}
+                          className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
@@ -291,6 +348,43 @@ const CartPage = () => {
                 )}
                 
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Wishlist Section */}
+        {wishlistItems.length > 0 && (
+          <div className="mt-16 bg-white dark:bg-gray-800 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700/80 shadow-sm animate-in fade-in duration-300">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
+              <Heart className="w-6 h-6 text-red-500 fill-current" /> My Wishlist
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {wishlistItems.map(item => (
+                <div key={item.productId} className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 border border-gray-200 dark:border-gray-700/80 flex flex-col group relative">
+                  <button 
+                    onClick={() => removeFromWishlist(item.productId)}
+                    className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full border border-gray-100 dark:border-gray-700 text-gray-400 hover:text-red-500 transition"
+                    title="Remove from wishlist"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <Link to={getProductDetailUrl(item)} className="aspect-square w-full rounded-xl overflow-hidden bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 mb-4 p-2 flex items-center justify-center">
+                    <img src={item.image} alt={item.name} className="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" />
+                  </Link>
+                  <h4 className="font-bold text-gray-900 dark:text-gray-100 line-clamp-1 mb-1 text-sm">
+                    <Link to={getProductDetailUrl(item)} className="hover:text-teal-700">{item.name}</Link>
+                  </h4>
+                  <div className="text-sm font-extrabold text-gray-900 dark:text-gray-100 mb-4">
+                    ₹{Math.round(Math.min(item.price_amazon, item.price_flipkart)).toLocaleString('en-IN')}
+                  </div>
+                  <button 
+                    onClick={() => moveFromWishlistToCart(item.productId)}
+                    className="w-full mt-auto py-2.5 bg-teal-700 text-white rounded-xl text-xs font-bold hover:bg-teal-800 transition flex items-center justify-center gap-1.5"
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" /> Move to Cart
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         )}

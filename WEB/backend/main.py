@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import all route modules
-from routes import auth, product, review, cart, decision
+from routes import auth, product, review, cart, decision, wishlist
 from database import products_col, customers_col, reviews_col, cart_col, purchase_preferences_col
 from services.product_service import load_products_to_db
 
@@ -63,6 +63,7 @@ app.include_router(product.router)
 app.include_router(review.router)
 app.include_router(cart.router)
 app.include_router(decision.router)
+app.include_router(wishlist.router)
 
 
 # ---------------------------------------------------------------------------

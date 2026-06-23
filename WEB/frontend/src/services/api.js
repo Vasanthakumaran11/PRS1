@@ -60,6 +60,8 @@ export const productAPI = {
 export const reviewAPI = {
   getByProduct: (productId) => api.get(`/reviews/${productId}`),
   addReview: (data) => api.post('/add-review', data),
+  updateReview: (reviewId, data) => api.put(`/update-review/${reviewId}`, data),
+  deleteReview: (reviewId) => api.delete(`/delete-review/${reviewId}`),
 };
 
 export const cartAPI = {
@@ -71,6 +73,12 @@ export const cartAPI = {
 
 export const decisionAPI = {
   getPurchaseDecision: (data) => api.post('/purchase-decision', data),
+};
+
+export const wishlistAPI = {
+  get: () => api.get('/wishlist'),
+  add: (data) => api.post('/wishlist/add', data),
+  remove: (productId) => api.delete(`/wishlist/remove/${productId}`),
 };
 
 export default api;

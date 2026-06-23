@@ -145,11 +145,8 @@ def load_products_from_csv() -> List[Dict[str, Any]]:
                             
                     brand = extract_brand(title)
                     
-                    # Worthiness-based ratings and random reviews count
-                    rating = clean_rating(row.get('rating'))
-                    if rating is None:
-                        rating = generate_worthiness_rating(brand, price)
-                    reviews = random.randint(50, 1500)
+                    rating = 0.0
+                    reviews = 0
                     
                     image = row.get('image', '').strip()
                     availability = row.get('availability', 'In Stock').strip()
@@ -217,10 +214,8 @@ def load_products_from_csv() -> List[Dict[str, Any]]:
                         price = 14999.0
                         
                     brand = extract_brand(title)
-                    rating = clean_rating(row.get('Rating'))
-                    if rating is None:
-                        rating = generate_worthiness_rating(brand, price)
-                    reviews = random.randint(50, 1500)
+                    rating = 0.0
+                    reviews = 0
                     
                     image = row.get('Product Image URL', '').strip()
                     product_link = row.get('Product Link', '').strip()
@@ -298,8 +293,8 @@ def load_products_from_csv() -> List[Dict[str, Any]]:
                     if not brand:
                         brand = "Generic Clothing"
                         
-                    rating = generate_worthiness_rating(brand, price)
-                    reviews = random.randint(30, 800)
+                    rating = 0.0
+                    reviews = 0
                     
                     sizes = row.get('available_sizes', '').strip()
                     if not sizes or sizes.lower() in ['n/a', '']:
@@ -379,8 +374,8 @@ def load_products_from_csv() -> List[Dict[str, Any]]:
                     if not material or material.lower() == 'n/a':
                         material = "Wood"
                         
-                    rating = generate_worthiness_rating(brand, price)
-                    reviews = random.randint(30, 800)
+                    rating = 0.0
+                    reviews = 0
                     
                     detail_link = row.get('Product Link', '').strip()
                     if not detail_link:
@@ -457,8 +452,8 @@ def load_products_from_csv() -> List[Dict[str, Any]]:
                     if title.startswith("fresho!"):
                         brand = "Fresho"
                         
-                    rating = generate_worthiness_rating(brand, price)
-                    reviews = random.randint(10, 500)
+                    rating = 0.0
+                    reviews = 0
                     
                     detail_link = row.get('Product Link', '').strip()
                     if not detail_link:

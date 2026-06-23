@@ -20,6 +20,16 @@ const ProductDetailsPage = () => {
   const [reviewText, setReviewText] = useState('');
   const [reviewFilter, setReviewFilter] = useState('All');
   const [selectedSize, setSelectedSize] = useState('');
+  const [reviewSort, setReviewSort] = useState('newest');
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  
+  // Auth & Review Edit/Delete states
+  const customerId = localStorage.getItem('customerId');
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editKeyword, setEditKeyword] = useState('');
+  const [editText, setEditText] = useState('');
+  const [showEditDetailed, setShowEditDetailed] = useState(false);
   
   useEffect(() => {
     const fetchProductData = async () => {
@@ -29,9 +39,24 @@ const ProductDetailsPage = () => {
           productAPI.getById(productId),
           reviewAPI.getByProduct(productId)
         ]);
-        setProduct(prodRes.data);
+        const fetchedProduct = prodRes.data;
+        setProduct(fetchedProduct);
         setReviews(revRes.data);
-        setActiveImage(prodRes.data.image);
+        setActiveImage(fetchedProduct.image);
+
+        // Fetch related products from same category, excluding current product
+        if (fetchedProduct.category) {
+          try {
+            const relRes = await productAPI.getByCategory(fetchedProduct.category);
+            const filteredRel = (relRes.data || [])
+              .filter(p => p.productId !== fetchedProduct.productId)
+              .slice(0, 4);
+            setRelatedProducts(filteredRel);
+          } catch (relErr) {
+            console.error("Error loading related products:", relErr);
+            setRelatedProducts([]);
+          }
+        }
       } catch (error) {
         console.error("Error fetching product details:", error);
         toast.error("Failed to load product details.");
@@ -42,18 +67,64 @@ const ProductDetailsPage = () => {
     fetchProductData();
   }, [productId]);
 
-  if (isLoading) {
-    return <div className="pt-24 text-center min-h-screen">Loading Product Details...</div>;
-  }
+  const handleEditClick = (review) => {
+    setEditingReviewId(review.reviewId);
+    setEditRating(review.rating);
+    setEditKeyword(review.keyword || '');
+    setEditText(review.review || '');
+    setShowEditDetailed(!!review.review && review.review !== review.keyword);
+  };
 
-  if (!product) {
-    return <div className="pt-24 text-center min-h-screen">Product Not Found</div>;
-  }
+  const handleEditSubmit = async (e, reviewId) => {
+    e.preventDefault();
+    if (!editKeyword && !showEditDetailed) {
+      toast.error('Please select a quick response or write a detailed review.');
+      return;
+    }
+    if (showEditDetailed && !editText.trim()) {
+      toast.error('Please enter a detailed review.');
+      return;
+    }
 
-  // Related products logic (mock for now or could fetch by category)
-  const relatedProducts = []; // Simplified for now
+    try {
+      await reviewAPI.updateReview(reviewId, {
+        rating: editRating,
+        review: showEditDetailed ? editText : editKeyword,
+        keyword: editKeyword || null
+      });
 
-  const filteredReviews = reviewFilter === 'All' ? reviews : reviews.filter(r => r.rating === parseInt(reviewFilter));
+      toast.success('Review updated successfully!');
+      setEditingReviewId(null);
+      
+      // Refresh details
+      const [prodRes, revRes] = await Promise.all([
+        productAPI.getById(productId),
+        reviewAPI.getByProduct(productId)
+      ]);
+      setProduct(prodRes.data);
+      setReviews(revRes.data);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to update review.");
+    }
+  };
+
+  const handleDeleteClick = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete your review?")) return;
+    try {
+      await reviewAPI.deleteReview(reviewId);
+      toast.success("Review deleted successfully!");
+      
+      // Refresh details
+      const [prodRes, revRes] = await Promise.all([
+        productAPI.getById(productId),
+        reviewAPI.getByProduct(productId)
+      ]);
+      setProduct(prodRes.data);
+      setReviews(revRes.data);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to delete review.");
+    }
+  };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -76,8 +147,12 @@ const ProductDetailsPage = () => {
 
       toast.success(`Review Submitted Successfully!`);
       
-      // Refresh reviews
-      const revRes = await reviewAPI.getByProduct(productId);
+      // Refresh details
+      const [prodRes, revRes] = await Promise.all([
+        productAPI.getById(productId),
+        reviewAPI.getByProduct(productId)
+      ]);
+      setProduct(prodRes.data);
       setReviews(revRes.data);
 
       setReviewText('');
@@ -100,14 +175,36 @@ const ProductDetailsPage = () => {
     }
   };
 
-  // Fake Histogram Data
-  const histogram = [
-    { stars: 5, pct: 68 },
-    { stars: 4, pct: 18 },
-    { stars: 3, pct: 8 },
-    { stars: 2, pct: 4 },
-    { stars: 1, pct: 2 },
-  ];
+  if (isLoading) {
+    return <div className="pt-24 text-center min-h-screen">Loading Product Details...</div>;
+  }
+
+  if (!product) {
+    return <div className="pt-24 text-center min-h-screen">Product Not Found</div>;
+  }
+
+  // Related products logic fetched by category
+
+  const filteredReviews = reviewFilter === 'All' ? reviews : reviews.filter(r => r.rating === parseInt(reviewFilter));
+
+  const sortedReviews = [...filteredReviews].sort((a, b) => {
+    if (reviewSort === 'highest') {
+      return b.rating - a.rating;
+    } else if (reviewSort === 'lowest') {
+      return a.rating - b.rating;
+    } else {
+      // newest
+      return new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt);
+    }
+  });
+
+  // Dynamic Histogram Data
+  const totalReviews = reviews.length;
+  const histogram = [5, 4, 3, 2, 1].map(stars => {
+    const count = reviews.filter(r => r.rating === stars).length;
+    const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+    return { stars, pct };
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 pb-36">
@@ -416,73 +513,203 @@ const ProductDetailsPage = () => {
                </div>
 
                {/* Review Filters */}
-               <div className="flex flex-wrap items-center gap-3 mb-10 bg-gray-50 dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                 <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-2 pr-1">Filter:</span>
-                 {['All', '5', '4', '3', '2', '1'].map(val => (
-                   <button 
-                     key={val}
-                     onClick={() => setReviewFilter(val)}
-                     className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${reviewFilter === val ? 'bg-teal-700 text-white dark:bg-gray-100 dark:text-gray-900 shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                   >
-                     {val === 'All' ? 'All Reviews' : `${val} Stars`}
-                   </button>
-                 ))}
-               </div>
+               <div className="flex flex-wrap items-center justify-between gap-4 mb-10 bg-gray-50 dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-2 pr-1">Filter:</span>
+                    {['All', '5', '4', '3', '2', '1'].map(val => (
+                      <button 
+                        key={val}
+                        onClick={() => setReviewFilter(val)}
+                        className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${reviewFilter === val ? 'bg-teal-700 text-white dark:bg-gray-100 dark:text-gray-900 shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      >
+                        {val === 'All' ? 'All Reviews' : `${val} Stars`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 pl-2">
+                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sort:</span>
+                    <select
+                      value={reviewSort}
+                      onChange={(e) => setReviewSort(e.target.value)}
+                      className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="highest">Highest Rating</option>
+                      <option value="lowest">Lowest Rating</option>
+                    </select>
+                  </div>
+                </div>
 
                <div className="space-y-6">
-                 {filteredReviews.length > 0 ? filteredReviews.map((review, idx) => (
-                   <div key={review.id || review.customerId || `review-${idx}`} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700/80 p-8 rounded-3xl block w-full transition-shadow hover:shadow-md">
-                     <div className="flex items-center justify-between mb-5">
-                       <div className="flex items-center">
-                         <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 font-black text-xl mr-5 object-cover shadow-sm border-2 border-white dark:border-gray-800 relative z-0">
-                           {(review.customerName || 'U')?.charAt(0).toUpperCase()}
-                           <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-4 h-4 border-2 border-white dark:border-gray-800 z-10"></div>
-                         </div>
-                         <div>
-                           <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{review.customerName || 'Anonymous User'}</h4>
-                           <p className="text-sm font-semibold text-gray-400 mt-1">Reviewed on {new Date(review.timestamp || review.createdAt).toLocaleDateString()}</p>
-                         </div>
-                       </div>
-                     </div>
-                     
-                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5 pb-5 border-b border-gray-100 dark:border-gray-700/50">
-                       <div className="flex items-center bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-700 w-fit">
-                         <div className="flex text-yellow-400 mr-2.5">
-                           {[...Array(5)].map((_, i) => (
-                             <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-gray-200 dark:text-gray-700'}`} />
-                           ))}
-                         </div>
-                         <span className="text-sm font-black text-gray-900 dark:text-gray-100">{review.rating}.0</span>
-                       </div>
-                       
-                       {/* Mocking the Keyword logic */}
-                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-4 py-2 rounded-xl border border-transparent dark:border-gray-600 shadow-sm w-fit">
-                          {review.rating >= 4 ? 'Super' : review.rating === 3 ? 'Average' : 'Poor'}
-                       </span>
+                 {sortedReviews.length > 0 ? sortedReviews.map((review, idx) => (
+                    <div key={review.reviewId || review.customerId || `review-${idx}`} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700/80 p-8 rounded-3xl block w-full transition-shadow hover:shadow-md">
+                      {editingReviewId === review.reviewId ? (
+                        <form onSubmit={(e) => handleEditSubmit(e, review.reviewId)} className="space-y-6 animate-in fade-in duration-200">
+                          <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-gray-750">
+                            <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100">Edit your review</h4>
+                            <button 
+                              type="button" 
+                              onClick={() => setEditingReviewId(null)}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 p-1.5 rounded-full"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          
+                          {/* Rating selection */}
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Rating</label>
+                            <div className="flex gap-2.5">
+                              {[1,2,3,4,5].map(star => (
+                                <button 
+                                  type="button" 
+                                  key={star} 
+                                  onClick={() => setEditRating(star)}
+                                  className={`p-1.5 transition-transform hover:scale-110 ${editRating >= star ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-700'}`}
+                                >
+                                  <Star className="w-8 h-8 fill-current" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
 
-                       {review.rating >= 4 && (
-                          <span className="text-xs font-bold text-green-700 flex items-center bg-green-50 px-3 py-2 rounded-xl border border-green-200 ml-auto mr-0">
-                            <CheckCircle className="w-4 h-4 mr-1.5" /> Verified Purchase
-                          </span>
-                       )}
-                     </div>
+                          {/* Keyword Selection */}
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Quick response</label>
+                            <div className="flex flex-wrap gap-2">
+                              {['Super', 'Good', 'Average', 'Poor'].map(kw => (
+                                <button
+                                  type="button"
+                                  key={kw}
+                                  onClick={() => setEditKeyword(kw)}
+                                  className={`px-4 py-2 rounded-full border text-sm font-semibold transition-all ${editKeyword === kw ? 'bg-teal-700 text-white border-teal-700 shadow-sm' : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50'}`}
+                                >
+                                  {kw}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
 
-                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-base lg:text-lg">{review.review || review.text || 'No text provided'}</p>
-                     
-                     <div className="flex items-center gap-5 pt-2">
-                        <button className="flex items-center text-sm text-gray-600 dark:text-gray-400 font-bold hover:text-teal-700 dark:hover:text-teal-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0 shadow-sm">
-                           <ThumbsUp className="w-4 h-4 mr-2" /> Helpful (12)
-                        </button>
-                        <span className="text-sm font-semibold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-5 cursor-pointer hover:text-red-500 dark:hover:text-red-400 transition-colors">Report</span>
-                     </div>
-                   </div>
-                 )) : (
+                          {/* Detailed review checkbox */}
+                          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <label className="flex items-center cursor-pointer select-none">
+                              <input 
+                                type="checkbox" 
+                                className="w-5 h-5 rounded border-gray-300 text-teal-700 focus:ring-teal-500 cursor-pointer shadow-sm"
+                                checked={showEditDetailed}
+                                onChange={(e) => setShowEditDetailed(e.target.checked)}
+                              />
+                              <span className="ml-3 text-sm font-bold text-gray-900 dark:text-gray-150">
+                                Provide a detailed review
+                              </span>
+                            </label>
+                            
+                            {showEditDetailed && (
+                              <div className="mt-4 animate-in fade-in duration-200">
+                                <textarea 
+                                  required={showEditDetailed}
+                                  value={editText}
+                                  onChange={(e) => setEditText(e.target.value)}
+                                  rows="4" 
+                                  className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 outline-none text-sm text-gray-900 dark:text-gray-100 shadow-inner"
+                                  placeholder="Edit your detailed review..."
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button 
+                              type="button" 
+                              onClick={() => setEditingReviewId(null)}
+                              className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold text-gray-700 dark:text-gray-350 hover:bg-gray-50"
+                            >
+                              Cancel
+                            </button>
+                            <button 
+                              type="submit" 
+                              className="px-5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-sm font-bold shadow-sm"
+                            >
+                              Save Changes
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center">
+                              <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 font-black text-xl mr-5 object-cover shadow-sm border-2 border-white dark:border-gray-800 relative z-0">
+                                {(review.customerName || 'U')?.charAt(0).toUpperCase()}
+                                <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-4 h-4 border-2 border-white dark:border-gray-800 z-10"></div>
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{review.customerName || 'Anonymous User'}</h4>
+                                <p className="text-sm font-semibold text-gray-400 mt-1">Reviewed on {new Date(review.timestamp || review.createdAt).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5 pb-5 border-b border-gray-100 dark:border-gray-700/50">
+                            <div className="flex items-center bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-700 w-fit">
+                              <div className="flex text-yellow-400 mr-2.5">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-gray-200 dark:text-gray-750'}`} />
+                                ))}
+                              </div>
+                              <span className="text-sm font-black text-gray-900 dark:text-gray-100">{review.rating}.0</span>
+                            </div>
+                            
+                            {review.keyword && (
+                              <span className="text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-4 py-2 rounded-xl border border-transparent dark:border-gray-600 shadow-sm w-fit">
+                                 {review.keyword}
+                              </span>
+                            )}
+
+                            {review.rating >= 4 && (
+                               <span className="text-xs font-bold text-green-700 flex items-center bg-green-50 px-3 py-2 rounded-xl border border-green-200 ml-auto mr-0">
+                                 <CheckCircle className="w-4 h-4 mr-1.5" /> Verified Purchase
+                               </span>
+                            )}
+                          </div>
+
+                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-base lg:text-lg">{review.review || 'No text provided'}</p>
+                          
+                          <div className="flex items-center gap-5 pt-2">
+                             <button className="flex items-center text-sm text-gray-600 dark:text-gray-400 font-bold hover:text-teal-700 dark:hover:text-teal-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0 shadow-sm">
+                                <ThumbsUp className="w-4 h-4 mr-2" /> Helpful (12)
+                             </button>
+                             <span className="text-sm font-semibold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-5 cursor-pointer hover:text-red-500 dark:hover:text-red-400 transition-colors">Report</span>
+                             
+                             {review.customerId === customerId && (
+                               <>
+                                 <span className="mx-2 text-gray-300">|</span>
+                                 <button 
+                                   onClick={() => handleEditClick(review)}
+                                   className="text-sm font-bold text-teal-700 hover:text-teal-800 dark:text-teal-400 transition-colors"
+                                 >
+                                   Edit
+                                 </button>
+                                 <span className="mx-2 text-gray-300">|</span>
+                                 <button 
+                                   onClick={() => handleDeleteClick(review.reviewId)}
+                                   className="text-sm font-bold text-red-650 hover:text-red-750 dark:text-red-400 transition-colors"
+                                 >
+                                   Delete
+                                 </button>
+                               </>
+                             )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )) : (
                    <div className="py-20 text-center bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-3xl">
                      <p className="text-gray-500 dark:text-gray-400 font-bold mb-4 text-xl">No reviews matching this specific filter.</p>
                      <button onClick={() => setReviewFilter('All')} className="text-teal-700 dark:text-teal-400 font-bold hover:underline">Clear Filters</button>
                    </div>
                  )}
-               </div>
+                </div>
 
                <div className="mt-10 flex justify-center pb-6">
                  <button className="px-10 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition shadow-sm text-lg">
